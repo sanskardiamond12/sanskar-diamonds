@@ -13,52 +13,39 @@
     <style>
         body { font-family: 'Noto Sans Gujarati', sans-serif; background-color: #f3f4f6; }
         
-        /* --- PRINT SETTINGS --- */
-        @media screen {
-            .print-only { display: none; }
+        /* MOBILE MENU TRANSITION */
+        .sidebar { transition: transform 0.3s ease-in-out; }
+        .sidebar-closed { transform: translateX(-100%); } /* Phone pe chupa hua */
+        .sidebar-open { transform: translateX(0); } /* Phone pe dikhai dega */
+
+        /* LAPTOP: Always show sidebar */
+        @media (min-width: 768px) {
+            .sidebar-closed { transform: translateX(0); } 
+            .mobile-header { display: none; } /* Laptop pe header ki jarurat nahi */
         }
+
+        /* --- PRINT SETTINGS (3 ACROSS) --- */
+        @media screen { .print-only { display: none; } }
         @media print {
             body * { visibility: hidden; }
             .print-only, .print-only * { visibility: visible; }
-            .print-only {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                padding: 5mm;
-            }
-
-            /* Grid System for 3 Columns */
-            .print-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr); /* 3 Pavti per row */
-                gap: 10px; /* Gap between slips */
-                width: 100%;
-            }
-
-            .pavati-wrapper {
-                width: 100%; 
-                break-inside: avoid; /* Prevent cutting inside a slip */
-                margin-bottom: 15px;
-            }
-
-            .pavati {
-                padding: 5px;
-                background: white;
-                border: 1px dashed #000;
-                text-align: center;
-                font-size: 10px; /* Small font to fit 3 in a row */
-                color: black;
-            }
+            .print-only { position: absolute; left: 0; top: 0; width: 100%; padding: 5mm; }
             
+            /* FORCE 3 COLUMNS */
+            .print-grid { 
+                display: grid; 
+                grid-template-columns: repeat(3, 1fr); /* 1-2-3 Layout */
+                gap: 10px; 
+                width: 100%; 
+            }
+            .pavati-wrapper { break-inside: avoid; border: 1px solid #ddd; }
+            .pavati { padding: 5px; text-align: center; font-size: 10px; color: black; }
             .dashed-line { border-bottom: 1px dashed black; margin: 4px 0; }
             .row { display: flex; justify-content: space-between; }
             .big-text { font-size: 12px; font-weight: bold; }
             
-            @page { 
-                size: A4 portrait; /* Use Portrait for 3 columns */
-                margin: 5mm; 
-            }
+            /* Landscape Mode for 3 columns */
+            @page { size: landscape; margin: 5mm; }
         }
     </style>
 </head>
@@ -69,78 +56,76 @@
     <div v-if="!isLoggedIn" class="flex items-center justify-center h-screen bg-slate-900">
         <div class="bg-white p-8 rounded-lg shadow-2xl w-96 text-center">
             <h1 class="text-3xl font-bold text-blue-900 mb-2">SANSKAR DIAMOND</h1>
-            <p class="text-gray-500 mb-6">Factory Management System</p>
-            <input type="password" v-model="loginPin" placeholder="ENTER YOUR PIN " class="w-full p-3 border rounded mb-4 text-center text-xl tracking-widest">
+            <p class="text-gray-500 mb-6">Secure System</p>
+            <input type="password" v-model="loginPin" placeholder="Enter PIN" class="w-full p-3 border rounded mb-4 text-center text-xl tracking-widest">
             <button @click="login" class="w-full bg-blue-900 text-white py-3 rounded hover:bg-blue-800 transition">Login</button>
         </div>
     </div>
 
-    <div v-else class="min-h-screen flex flex-col md:flex-row">
+    <div v-else class="min-h-screen flex flex-col md:flex-row relative">
         
-        <aside class="bg-slate-900 text-white w-full md:w-64 p-4 flex-shrink-0 hidden-print">
-            <h2 class="text-xl font-bold mb-6 text-center border-b border-slate-700 pb-4">💎 SANSKAR DIAMOND</h2>
+        <header class="mobile-header bg-slate-900 text-white p-4 flex justify-between items-center w-full md:hidden fixed top-0 z-50 shadow-md">
+            <h2 class="font-bold text-lg">💎 SANSKAR</h2>
+            <button @click="toggleMenu" class="text-2xl focus:outline-none">
+                <i class="fa-solid fa-bars"></i> </button>
+        </header>
+
+        <aside :class="['bg-slate-900 text-white w-64 p-4 flex-shrink-0 sidebar fixed md:relative h-full z-40 pt-20 md:pt-4', isMobileMenuOpen ? 'sidebar-open' : 'sidebar-closed']">
+            <h2 class="text-xl font-bold mb-6 text-center border-b border-slate-700 pb-4 hidden md:block">💎 SANSKAR</h2>
             <nav class="space-y-2">
-                <button @click="currentView = 'dashboard'" :class="navClass('dashboard')"><i class="fa-solid fa-chart-line mr-2"></i> Dashboard</button>
-                <button @click="currentView = 'entry'" :class="navClass('entry')"><i class="fa-solid fa-calculator mr-2"></i> Work Entry</button>
-                <button @click="currentView = 'history'" :class="navClass('history')"><i class="fa-solid fa-file-invoice mr-2"></i> Print History</button>
-                <button @click="currentView = 'employees'" :class="navClass('employees')"><i class="fa-solid fa-users mr-2"></i> Employees</button>
-                <button @click="currentView = 'settings'" :class="navClass('settings')"><i class="fa-solid fa-gear mr-2"></i> Work Rates</button>
+                <button @click="navigate('dashboard')" :class="navClass('dashboard')"><i class="fa-solid fa-chart-line mr-2"></i> Dashboard</button>
+                <button @click="navigate('entry')" :class="navClass('entry')"><i class="fa-solid fa-calculator mr-2"></i> Work Entry</button>
+                <button @click="navigate('history')" :class="navClass('history')"><i class="fa-solid fa-file-invoice mr-2"></i> Print History</button>
+                <button @click="navigate('employees')" :class="navClass('employees')"><i class="fa-solid fa-users mr-2"></i> Employees</button>
+                <button @click="navigate('settings')" :class="navClass('settings')"><i class="fa-solid fa-gear mr-2"></i> Settings</button>
                 <button @click="logout" class="w-full text-left p-3 rounded hover:bg-red-700 mt-10"><i class="fa-solid fa-power-off mr-2"></i> Logout</button>
             </nav>
         </aside>
 
-        <main class="flex-1 p-4 md:p-8 overflow-y-auto hidden-print">
+        <div v-if="isMobileMenuOpen" @click="toggleMenu" class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"></div>
+
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto mt-16 md:mt-0 hidden-print">
             
             <div v-if="currentView === 'dashboard'">
-                <h2 class="text-2xl font-bold mb-6">Factory Overview</h2>
+                <h2 class="text-2xl font-bold mb-6">Overview</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    
                     <div class="bg-white p-6 rounded shadow border-l-4 border-purple-600">
                         <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-gray-500 text-sm font-bold">Total Paid Salary (કુલ ચૂકવેલ)</p>
-                                <h3 class="text-3xl font-bold text-purple-700">₹ {{ totalPaidAmount }}</h3>
-                            </div>
+                            <div><p class="text-gray-500 text-sm font-bold">Total Paid</p><h3 class="text-3xl font-bold text-purple-700">₹ {{ totalPaidAmount }}</h3></div>
                             <div class="text-purple-200 text-4xl"><i class="fa-solid fa-sack-dollar"></i></div>
                         </div>
                     </div>
-
                     <div class="bg-white p-6 rounded shadow border-l-4 border-blue-500">
                         <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-gray-500 text-sm font-bold">Total Workers</p>
-                                <h3 class="text-3xl font-bold text-blue-700">{{ employees.length }}</h3>
-                            </div>
+                            <div><p class="text-gray-500 text-sm font-bold">Workers</p><h3 class="text-3xl font-bold text-blue-700">{{ employees.length }}</h3></div>
                             <div class="text-blue-200 text-4xl"><i class="fa-solid fa-users"></i></div>
                         </div>
                     </div>
-
-                    <div class="bg-white p-6 rounded shadow border-l-4 border-green-500">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-gray-500 text-sm font-bold">Total Pavti Generated</p>
-                                <h3 class="text-3xl font-bold text-green-700">{{ workEntries.length }}</h3>
-                            </div>
-                            <div class="text-green-200 text-4xl"><i class="fa-solid fa-file-invoice"></i></div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
 
             <div v-if="currentView === 'settings'">
-                <h2 class="text-2xl font-bold mb-6">⚙️ Work Rates & Salary</h2>
+                <h2 class="text-2xl font-bold mb-6">⚙️ Settings</h2>
+                
+                <div class="bg-red-50 p-6 rounded border border-red-200 mb-8">
+                    <h3 class="font-bold text-red-900 mb-4">Change PIN</h3>
+                    <div class="flex gap-4 items-end">
+                        <input v-model="newPinInput" type="password" placeholder="New PIN" class="p-2 border rounded">
+                        <button @click="changePin" class="bg-red-700 text-white px-4 py-2 rounded">Update</button>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-lg mb-4">Work Rates</h3>
                 <div class="bg-white p-6 rounded shadow mb-6">
-                    <p class="text-sm text-gray-500 mb-2">Create Rates for Diamonds (Worker) or Per Day Salary (Manager)</p>
                     <div class="flex gap-4 flex-wrap">
-                        <input v-model="newWorkType.name" placeholder="Name (e.g. Mathala / Manager Salary)" class="border p-2 rounded flex-1">
-                        <input v-model="newWorkType.rate" type="number" step="0.01" placeholder="Rate (₹)" class="border p-2 rounded w-32">
+                        <input v-model="newWorkType.name" placeholder="Name" class="border p-2 rounded flex-1">
+                        <input v-model="newWorkType.rate" type="number" step="0.01" placeholder="Rate" class="border p-2 rounded w-32">
                         <button @click="addWorkType" class="bg-green-600 text-white px-6 py-2 rounded">Add</button>
                     </div>
                 </div>
                 <div class="bg-white rounded shadow">
                     <table class="w-full text-left">
-                        <thead class="bg-gray-100"><tr><th class="p-4">Name</th><th class="p-4">Rate (₹)</th><th class="p-4">Action</th></tr></thead>
+                        <thead class="bg-gray-100"><tr><th class="p-4">Name</th><th class="p-4">Rate</th><th class="p-4">Action</th></tr></thead>
                         <tbody>
                             <tr v-for="(work, index) in workTypes" :key="index" class="border-b">
                                 <td class="p-4">{{ work.name }}</td><td class="p-4">₹ {{ work.rate }}</td>
@@ -154,29 +139,23 @@
             <div v-if="currentView === 'employees'">
                 <h2 class="text-2xl font-bold mb-6">👥 Employees</h2>
                 <div class="bg-white p-6 rounded shadow mb-6">
-                    <h3 class="font-bold mb-2">Add New Person</h3>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <input v-model="newEmp.name" placeholder="Name (Gujarati)" class="border p-2 rounded">
+                        <input v-model="newEmp.name" placeholder="Name" class="border p-2 rounded">
                         <input v-model="newEmp.village" placeholder="Village" class="border p-2 rounded">
                         <input v-model="newEmp.dept" placeholder="Dept" class="border p-2 rounded">
-                        
                         <select v-model="newEmp.role" class="border p-2 rounded bg-yellow-50">
                             <option value="Worker">Worker (હીરા)</option>
                             <option value="Manager">Manager (દિવસ)</option>
                         </select>
-                        
-                        <button @click="addEmployee" class="bg-blue-600 text-white px-6 py-2 rounded md:col-span-4">Save Employee</button>
+                        <button @click="addEmployee" class="bg-blue-600 text-white px-6 py-2 rounded md:col-span-4">Save</button>
                     </div>
                 </div>
-                
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div v-for="(emp, index) in employees" :key="index" class="bg-white p-4 rounded shadow border flex justify-between relative">
                         <div>
                             <span v-if="emp.role === 'Manager'" class="absolute top-2 right-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">Manager</span>
                             <span v-else class="absolute top-2 right-2 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">Worker</span>
-                            
-                            <h4 class="font-bold">{{ emp.name }}</h4>
-                            <p class="text-sm">{{ emp.village }} • {{ emp.dept }}</p>
+                            <h4 class="font-bold">{{ emp.name }}</h4><p class="text-sm">{{ emp.village }} • {{ emp.dept }}</p>
                         </div>
                         <button @click="deleteEmployee(index)" class="text-red-400 mt-6"><i class="fa-solid fa-trash"></i></button>
                     </div>
@@ -186,65 +165,50 @@
             <div v-if="currentView === 'entry'">
                 <h2 class="text-2xl font-bold mb-6">💎 Work Entry</h2>
                 <div class="bg-white p-6 rounded shadow max-w-2xl mx-auto">
-                    
                     <div class="mb-4">
                         <label class="block font-bold mb-1">Select Person</label>
                         <select v-model="entry.empIndex" class="w-full p-3 border rounded" @change="resetEntry">
                             <option value="" disabled>Select...</option>
-                            <option v-for="(emp, idx) in employees" :value="idx">
-                                {{ emp.name }} - {{ emp.role === 'Manager' ? '(Manager)' : '(Worker)' }}
-                            </option>
+                            <option v-for="(emp, idx) in employees" :value="idx">{{ emp.name }} - {{ emp.role }}</option>
                         </select>
                     </div>
-
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div><label class="block text-sm">From Date</label><input type="date" v-model="entry.dateFrom" class="w-full p-2 border rounded"></div>
-                        <div><label class="block text-sm">To Date</label><input type="date" v-model="entry.dateTo" class="w-full p-2 border rounded"></div>
+                        <div><label class="block text-sm">From</label><input type="date" v-model="entry.dateFrom" class="w-full p-2 border rounded"></div>
+                        <div><label class="block text-sm">To</label><input type="date" v-model="entry.dateTo" class="w-full p-2 border rounded"></div>
                     </div>
-
                     <div class="mb-4">
-                        <label class="block font-bold mb-1">Work Type / Salary Rate</label>
+                        <label class="block font-bold mb-1">Work Type</label>
                         <select v-model="entry.workIndex" class="w-full p-3 border rounded" @change="calculateTotal">
                             <option value="" disabled>Select Rate...</option>
                             <option v-for="(work, idx) in workTypes" :value="idx">{{ work.name }} (₹ {{ work.rate }})</option>
                         </select>
                     </div>
-
                     <div class="mb-6" v-if="getSelectedEmpRole()">
-                        <label class="block font-bold mb-1 text-blue-800">
-                            {{ getSelectedEmpRole() === 'Manager' ? 'Total Days (કુલ દિવસ)' : 'Total Diamonds (કુલ હીરા)' }}
-                        </label>
+                        <label class="block font-bold mb-1 text-blue-800">{{ getSelectedEmpRole() === 'Manager' ? 'Total Days (કુલ દિવસ)' : 'Total Diamonds (કુલ હીરા)' }}</label>
                         <input type="number" v-model="entry.diamonds" @input="calculateTotal" class="w-full p-3 border rounded text-xl" placeholder="0">
                     </div>
-
-                    <div class="bg-blue-100 p-4 rounded text-center mb-6">
-                        <h2 class="text-4xl font-bold text-blue-900">₹ {{ entry.totalSalary }}</h2>
-                    </div>
+                    <div class="bg-blue-100 p-4 rounded text-center mb-6"><h2 class="text-4xl font-bold text-blue-900">₹ {{ entry.totalSalary }}</h2></div>
                     <button @click="saveEntry" class="w-full bg-blue-900 text-white py-4 rounded font-bold hover:bg-blue-800">SAVE & PRINT</button>
                 </div>
             </div>
 
             <div v-if="currentView === 'history'">
                 <h2 class="text-2xl font-bold mb-6">📜 Bulk Print</h2>
-                
                 <div class="bg-blue-50 p-6 rounded border border-blue-200 mb-6">
                     <div class="flex flex-col md:flex-row gap-4 items-end">
                         <div><label class="block text-xs font-bold">From</label><input type="date" v-model="filterDateFrom" class="p-2 border rounded"></div>
                         <div><label class="block text-xs font-bold">To</label><input type="date" v-model="filterDateTo" class="p-2 border rounded"></div>
-                        <button @click="bulkPrint" class="bg-blue-900 text-white px-6 py-2 rounded font-bold">
-                            <i class="fa-solid fa-print"></i> Generate 3-Column PDF
-                        </button>
+                        <button @click="bulkPrint" class="bg-blue-900 text-white px-6 py-2 rounded font-bold">Generate 3-Column PDF</button>
                     </div>
                 </div>
-
                 <div class="bg-white rounded shadow overflow-x-auto">
                     <table class="w-full text-left whitespace-nowrap">
                         <thead class="bg-gray-100"><tr><th class="p-3">Name</th><th class="p-3">Type</th><th class="p-3">Qty</th><th class="p-3">Total</th><th class="p-3">Action</th></tr></thead>
                         <tbody>
                             <tr v-for="(rec, idx) in workEntries" :key="idx" class="border-b">
                                 <td class="p-3 font-bold">{{ rec.empName }}</td>
-                                <td class="p-3 text-xs">{{ rec.role === 'Manager' ? 'Manager' : 'Worker' }}</td>
-                                <td class="p-3">{{ rec.diamonds }} {{ rec.role === 'Manager' ? 'Days' : 'Hira' }}</td>
+                                <td class="p-3 text-xs">{{ rec.role }}</td>
+                                <td class="p-3">{{ rec.diamonds }}</td>
                                 <td class="p-3 font-bold text-green-600">{{ rec.totalSalary }}</td>
                                 <td class="p-3"><button @click="deleteEntry(idx)" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
                             </tr>
@@ -262,41 +226,16 @@
                 <div class="pavati">
                     <h2 class="big-text">SANSKAR DIAMOND</h2>
                     <div class="dashed-line"></div>
-                    
-                    <div class="row">
-                        <span>તારીખ:</span>
-                        <span>{{ formatDate(slip.dateTo) }}</span>
-                    </div>
+                    <div class="row"><span>તારીખ:</span><span>{{ formatDate(slip.dateTo) }}</span></div>
                     <div class="dashed-line"></div>
-
-                    <div style="text-align: left;">
-                        <p><strong>નામ:</strong> {{ slip.empName }}</p>
-                        <p><strong>ગામ:</strong> {{ slip.village }}</p>
-                        <p><strong>વિભાગ:</strong> {{ slip.dept }}</p>
-                    </div>
-                    
+                    <div style="text-align: left;"><p><strong>નામ:</strong> {{ slip.empName }}</p><p><strong>ગામ:</strong> {{ slip.village }}</p><p><strong>વિભાગ:</strong> {{ slip.dept }}</p></div>
                     <div class="dashed-line"></div>
-                    
-                    <div class="row" style="font-weight:bold;">
-                        <span>કામ</span>
-                        <span>{{ slip.role === 'Manager' ? 'દિવસ' : 'હીરા' }}</span>
-                    </div>
-                    <div class="row">
-                        <span>{{ slip.workName }}</span>
-                        <span>{{ slip.diamonds }}</span>
-                    </div>
-
+                    <div class="row" style="font-weight:bold;"><span>કામ</span><span>{{ slip.role === 'Manager' ? 'દિવસ' : 'હીરા' }}</span></div>
+                    <div class="row"><span>{{ slip.workName }}</span><span>{{ slip.diamonds }}</span></div>
                     <div class="dashed-line"></div>
-                    
-                    <div class="row big-text">
-                        <span>કુલ પગાર:</span>
-                        <span>₹ {{ slip.totalSalary }}</span>
-                    </div>
-                    
+                    <div class="row big-text"><span>કુલ પગાર:</span><span>₹ {{ slip.totalSalary }}</span></div>
                     <div class="dashed-line"></div>
-                    <p style="margin-top: 5px; font-size: 8px;">
-                        સમયગાળો: {{ formatDate(slip.dateFrom) }} થી {{ formatDate(slip.dateTo) }}
-                    </p>
+                    <p style="margin-top: 5px; font-size: 8px;">સમયગાળો: {{ formatDate(slip.dateFrom) }} થી {{ formatDate(slip.dateTo) }}</p>
                 </div>
             </div>
         </div>
@@ -307,85 +246,90 @@
 <script>
     const { createApp } = Vue;
 
+    async function sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     createApp({
         data() {
             return {
-                isLoggedIn: false, loginPin: '',
+                isLoggedIn: false, loginPin: '', loginError: false,
                 currentView: 'dashboard',
+                isMobileMenuOpen: false, // State for Hamburger Menu
                 employees: [], workTypes: [], workEntries: [],
                 
+                storedPinHash: null, newPinInput: '',
                 newWorkType: { name: '', rate: '' },
                 newEmp: { name: '', village: '', dept: '', role: 'Worker' },
-                
                 entry: { empIndex: '', workIndex: '', dateFrom: '', dateTo: '', diamonds: '', totalSalary: 0 },
-                
                 filterDateFrom: new Date().toISOString().slice(0, 10),
                 filterDateTo: new Date().toISOString().slice(0, 10),
                 printQueue: []
             }
         },
-        // AUTOMATIC CALCULATION FOR DASHBOARD
         computed: {
-            totalPaidAmount() {
-                // Sum up all entries
-                return this.workEntries.reduce((acc, item) => acc + parseFloat(item.totalSalary || 0), 0).toFixed(2);
-            }
+            totalPaidAmount() { return this.workEntries.reduce((acc, item) => acc + parseFloat(item.totalSalary || 0), 0).toFixed(2); }
         },
-        mounted() {
-            // Init Dates
+        async mounted() {
             const today = new Date().toISOString().slice(0, 10);
-            this.entry.dateFrom = today;
-            this.entry.dateTo = today;
+            this.entry.dateFrom = today; this.entry.dateTo = today;
 
             const storedEmp = localStorage.getItem('sanskar_employees_v2');
             const storedWork = localStorage.getItem('sanskar_workTypes_v2');
             const storedEntries = localStorage.getItem('sanskar_entries_v2');
-            
+            const storedHash = localStorage.getItem('sanskar_pin_hash');
+
             if(storedEmp) this.employees = JSON.parse(storedEmp);
             if(storedWork) this.workTypes = JSON.parse(storedWork);
             if(storedEntries) this.workEntries = JSON.parse(storedEntries);
+
+            if (storedHash) {
+                this.storedPinHash = storedHash;
+            } else {
+                this.storedPinHash = await sha256('1234');
+                localStorage.setItem('sanskar_pin_hash', this.storedPinHash);
+            }
         },
         methods: {
-            login() { if(this.loginPin === 'sanskar@123') this.isLoggedIn = true; },
-            logout() { this.isLoggedIn = false; },
+            toggleMenu() { this.isMobileMenuOpen = !this.isMobileMenuOpen; },
+            navigate(view) { this.currentView = view; this.isMobileMenuOpen = false; }, // Close menu after click
+            
+            async login() {
+                const inputHash = await sha256(this.loginPin);
+                if(inputHash === this.storedPinHash) { this.isLoggedIn = true; this.loginError = false; } else { this.loginError = true; }
+            },
+            logout() { this.isLoggedIn = false; this.loginPin = ''; this.isMobileMenuOpen = false; },
+            async changePin() {
+                if(this.newPinInput.length < 4) { alert("PIN must be at least 4 digits"); return; }
+                const newHash = await sha256(this.newPinInput);
+                this.storedPinHash = newHash;
+                localStorage.setItem('sanskar_pin_hash', newHash);
+                alert("PIN Changed!"); this.newPinInput = '';
+            },
             navClass(view) { return this.currentView === view ? 'w-full text-left p-3 rounded bg-blue-700 text-white font-bold' : 'w-full text-left p-3 rounded hover:bg-slate-800 text-gray-300'; },
             saveData() {
                 localStorage.setItem('sanskar_employees_v2', JSON.stringify(this.employees));
                 localStorage.setItem('sanskar_workTypes_v2', JSON.stringify(this.workTypes));
                 localStorage.setItem('sanskar_entries_v2', JSON.stringify(this.workEntries));
             },
-            
-            // Employee with Role
-            addEmployee() { 
-                if(this.newEmp.name) { 
-                    this.employees.push({...this.newEmp}); 
-                    this.newEmp = {name:'',village:'',dept:'', role: 'Worker'}; 
-                    this.saveData(); alert("Employee Saved!"); 
-                } 
-            },
+            addEmployee() { if(this.newEmp.name) { this.employees.push({...this.newEmp}); this.newEmp = {name:'',village:'',dept:'', role: 'Worker'}; this.saveData(); alert("Saved!"); } },
             deleteEmployee(i) { if(confirm("Sure?")) { this.employees.splice(i, 1); this.saveData(); } },
-            
             addWorkType() { if(this.newWorkType.name) { this.workTypes.push({name: this.newWorkType.name, rate: parseFloat(this.newWorkType.rate).toFixed(2)}); this.newWorkType = {name:'', rate:''}; this.saveData(); } },
             deleteWorkType(i) { this.workTypes.splice(i, 1); this.saveData(); },
-
-            // Get selected employee Role
-            getSelectedEmpRole() {
-                if(this.entry.empIndex === '') return null;
-                return this.employees[this.entry.empIndex].role;
-            },
-
+            getSelectedEmpRole() { if(this.entry.empIndex === '') return null; return this.employees[this.entry.empIndex].role; },
             calculateTotal() {
                 if(this.entry.workIndex !== '' && this.entry.diamonds) {
                     const rate = this.workTypes[this.entry.workIndex].rate;
                     this.entry.totalSalary = (parseFloat(this.entry.diamonds) * parseFloat(rate)).toFixed(2);
                 } else { this.entry.totalSalary = 0; }
             },
-            
             saveEntry() {
                 if(this.entry.empIndex === '' || this.entry.workIndex === '') { alert("Missing Details"); return; }
                 const emp = this.employees[this.entry.empIndex];
                 const work = this.workTypes[this.entry.workIndex];
-                
                 const newEntry = {
                     empName: emp.name, village: emp.village, dept: emp.dept, role: emp.role,
                     workName: work.name, rate: work.rate,
@@ -393,45 +337,23 @@
                     diamonds: this.entry.diamonds, totalSalary: this.entry.totalSalary,
                     timestamp: new Date().getTime()
                 };
-                this.workEntries.unshift(newEntry);
-                this.saveData();
-                
+                this.workEntries.unshift(newEntry); this.saveData();
                 if(confirm("Saved! Print Slip?")) { this.printSingle(newEntry); }
                 this.entry.diamonds = ''; this.entry.totalSalary = 0;
             },
             deleteEntry(i) { if(confirm("Delete?")) { this.workEntries.splice(i, 1); this.saveData(); } },
-            
             resetEntry() { this.entry.diamonds = ''; this.entry.totalSalary = 0; },
-            
-            formatDate(dateStr) {
-                const d = new Date(dateStr);
-                return `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`;
-            },
-
-            // --- PRINT LOGIC (Grid) ---
-            printSingle(data) {
-                this.printQueue = [data];
-                setTimeout(() => window.print(), 200);
-            },
+            formatDate(dateStr) { const d = new Date(dateStr); return `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`; },
+            printSingle(data) { this.printQueue = [data]; setTimeout(() => window.print(), 200); },
             bulkPrint() {
                 const start = new Date(this.filterDateFrom).setHours(0,0,0,0);
                 const end = new Date(this.filterDateTo).setHours(23,59,59,999);
-                
-                const filtered = this.workEntries.filter(rec => {
-                    const recDate = new Date(rec.dateTo).getTime();
-                    return recDate >= start && recDate <= end;
-                });
-
+                const filtered = this.workEntries.filter(rec => { const recDate = new Date(rec.dateTo).getTime(); return recDate >= start && recDate <= end; });
                 if(filtered.length === 0) { alert("No Data"); return; }
-                
-                if(confirm(`Printing ${filtered.length} slips in 3-column format?`)) {
-                    this.printQueue = filtered;
-                    setTimeout(() => window.print(), 500);
-                }
+                if(confirm(`Printing ${filtered.length} slips?`)) { this.printQueue = filtered; setTimeout(() => window.print(), 500); }
             }
         }
     }).mount('#app');
 </script>
-
 </body>
 </html>
