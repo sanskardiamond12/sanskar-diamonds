@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANSKAR DIAMOND - Paid System</title>
+    <title>SANSKAR DIAMOND - Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -111,6 +111,21 @@
 
             <div v-if="currentView === 'settings'">
                 <h2 class="text-2xl font-bold mb-6">⚙️ Settings</h2>
+                
+                <div class="bg-red-50 p-6 rounded border border-red-200 mb-8">
+                    <h3 class="font-bold text-red-900 mb-2"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone (ડેટા સાફ કરો)</h3>
+                    <p class="text-xs text-red-600 mb-4">અહીંથી તમે ટેસ્ટિંગ માટે નાખેલો ડેટા કાઢી શકો છો.</p>
+                    
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <button @click="clearAllEntries" class="bg-white border border-red-500 text-red-600 px-4 py-2 rounded text-sm hover:bg-red-50">
+                            🗑️ Delete All History (બધો હિસાબ કાઢો)
+                        </button>
+                        <button @click="factoryReset" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">
+                            ⚠️ Factory Reset (બધું જ કાઢો)
+                        </button>
+                    </div>
+                </div>
+
                 <div class="bg-white p-6 rounded shadow mb-6">
                     <h3 class="font-bold mb-4">Add Rate</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -162,7 +177,6 @@
                     <div class="flex flex-col md:flex-row gap-4 items-end flex-wrap">
                         <div><label class="block text-xs font-bold">From</label><input type="date" v-model="filterDateFrom" class="p-2 border rounded"></div>
                         <div><label class="block text-xs font-bold">To</label><input type="date" v-model="filterDateTo" class="p-2 border rounded"></div>
-                        
                         <div>
                             <label class="block text-xs font-bold">Status</label>
                             <select v-model="filterStatus" class="p-2 border rounded w-32 bg-white">
@@ -171,7 +185,6 @@
                                 <option value="All">All</option>
                             </select>
                         </div>
-
                         <div class="relative">
                             <label class="block text-xs font-bold">Depts ({{ selectedDepts.length || 'All' }})</label>
                             <button @click="showDeptDropdown = !showDeptDropdown" class="p-2 border rounded bg-white w-40 text-left text-sm flex justify-between items-center">
@@ -185,11 +198,9 @@
                                 </div>
                             </div>
                         </div>
-
                         <button @click="bulkPrintSlips" class="bg-gray-800 text-white px-4 py-2 rounded text-sm"><i class="fa-solid fa-print"></i> Print Slips</button>
                         <button @click="bulkMarkAsPaid" class="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold shadow-lg transform hover:scale-105 transition"><i class="fa-solid fa-check-double"></i> Mark All as PAID</button>
                     </div>
-                    <p class="text-xs text-red-500 mt-2" v-if="filterStatus === 'Pending'">* Only showing Unpaid (Pending) work.</p>
                 </div>
                 <div class="bg-white rounded shadow overflow-x-auto">
                     <table class="w-full text-left whitespace-nowrap">
@@ -214,12 +225,11 @@
             </div>
 
             <div v-if="currentView === 'report'">
-                <h2 class="text-2xl font-bold mb-6">📊 Report (Pagar Patrak)</h2>
+                <h2 class="text-2xl font-bold mb-6">📊 Report</h2>
                 <div class="bg-green-50 p-6 rounded border border-green-200 mb-6">
                     <div class="flex flex-col md:flex-row gap-4 items-end flex-wrap">
                         <div><input type="date" v-model="filterDateFrom" class="p-2 border rounded"></div>
                         <div><input type="date" v-model="filterDateTo" class="p-2 border rounded"></div>
-                        
                         <div>
                              <label class="block text-xs font-bold">Include Paid?</label>
                              <select v-model="filterReportStatus" class="p-2 border rounded bg-white">
@@ -227,7 +237,6 @@
                                 <option value="All">All (Paid + Unpaid)</option>
                              </select>
                         </div>
-
                         <div class="relative">
                             <label class="block text-xs font-bold">Depts</label>
                             <button @click="showDeptDropdown = !showDeptDropdown" class="p-2 border rounded bg-white w-40 text-left text-sm flex justify-between items-center">
@@ -241,11 +250,9 @@
                                 </div>
                             </div>
                         </div>
-
                         <button @click="generateReportData" class="bg-green-700 text-white px-4 py-2 rounded">Load</button>
                         <button @click="printReport" class="bg-slate-800 text-white px-4 py-2 rounded"><i class="fa-solid fa-print"></i> Print</button>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2" v-if="filterReportStatus === 'Pending'">* Report shows only unpaid amounts. Change filter to see all.</p>
                 </div>
                 <div class="bg-white rounded shadow overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -309,41 +316,29 @@
                 newWorkType: { name: '', rate: '', unit: 'Diamond' }, newEmp: { name: '', village: '', dept: '' },
                 entry: { empIndex: '', workIndex: '', dateFrom: '', dateTo: '', diamonds: '', totalSalary: 0 },
                 filterDateFrom: new Date().toISOString().slice(0, 10), filterDateTo: new Date().toISOString().slice(0, 10),
-                
-                // MULTI SELECT & STATUS
                 selectedDepts: [], showDeptDropdown: false, filterStatus: 'Pending', filterReportStatus: 'Pending',
-                
                 printType: 'slips', printQueue: [], reportData: [],
                 githubToken: '', gistId: '', inputToken: '', inputGistId: ''
             }
         },
         computed: {
-            // Updated to check isPaid
             totalPaidAmount() { return this.workEntries.filter(e => e.isPaid).reduce((acc, item) => acc + parseFloat(item.totalSalary || 0), 0).toFixed(2); },
             totalPendingAmount() { return this.workEntries.filter(e => !e.isPaid).reduce((acc, item) => acc + parseFloat(item.totalSalary || 0), 0).toFixed(2); },
-            
             uniqueDepts() { const depts = new Set(this.employees.map(e => e.dept)); return Array.from(depts).filter(d => d); },
             printModeClass() { return this.printType === 'slips' ? 'print-mode-slips' : 'print-mode-report'; },
-            
-            // Core Filter Logic
             filteredEntries() {
                 const start = new Date(this.filterDateFrom).setHours(0,0,0,0); const end = new Date(this.filterDateTo).setHours(23,59,59,999);
                 return this.workEntries.filter(rec => {
                     const recDate = new Date(rec.dateTo).getTime();
                     const dateMatch = recDate >= start && recDate <= end;
-                    
-                    // Dept Match
                     let deptMatch = true;
                     if (this.selectedDepts.length > 0) {
                         if (rec.role === 'Manager') { deptMatch = this.selectedDepts.includes('Manager'); }
                         else { deptMatch = this.selectedDepts.includes(rec.dept); }
                     }
-
-                    // Status Match
                     let statusMatch = true;
                     if(this.filterStatus === 'Pending') statusMatch = !rec.isPaid;
                     if(this.filterStatus === 'Paid') statusMatch = rec.isPaid;
-
                     return dateMatch && deptMatch && statusMatch;
                 });
             }
@@ -377,22 +372,37 @@
                 localStorage.setItem('sanskar_workTypes_v3', JSON.stringify(this.workTypes)); 
                 if(this.githubToken && this.gistId) { this.syncToGithub(true); } 
             },
+
+            // --- CLEAR DATA LOGIC ---
+            clearAllEntries() {
+                if(confirm("⚠️ ચેતવણી: શું તમારે બધી 'હિસાબ' (Work Entries) ડિલીટ કરવી છે? આ પ્રક્રિયા પાછી નહિ ફરે.")) {
+                    this.workEntries = [];
+                    this.saveData();
+                    alert("બધો હિસાબ સાફ થઈ ગયો છે!");
+                }
+            },
+            factoryReset() {
+                const confirm1 = confirm("⚠️ DANGER: શું તમારે બધું જ (Employees, Rates, Entries) ડિલીટ કરવું છે?");
+                if(confirm1) {
+                    const confirm2 = confirm("આ છેલ્લી ચેતવણી છે. બધો ડેટા જતો રહેશે.");
+                    if(confirm2) {
+                        this.workEntries = [];
+                        this.employees = [];
+                        this.workTypes = [];
+                        this.saveData();
+                        alert("ફેક્ટરી રીસેટ સફળ! હવે તમે નવેસરથી શરૂ કરી શકો છો.");
+                        location.reload();
+                    }
+                }
+            },
+
             toggleDept(dept) { if(this.selectedDepts.includes(dept)) { this.selectedDepts = this.selectedDepts.filter(d => d !== dept); } else { this.selectedDepts.push(dept); } },
             generateMagicLink() { const url = window.location.href.split('?')[0]; const link = `${url}?t=${this.githubToken}&g=${this.gistId}`; navigator.clipboard.writeText(link).then(() => alert("Link Copied! Send to new mobile.")); },
             saveGithubSettings() { if(this.inputToken && this.inputGistId) { this.githubToken = this.inputToken; this.gistId = this.inputGistId; localStorage.setItem('sanskar_gh_token', this.inputToken); localStorage.setItem('sanskar_gist_id', this.inputGistId); alert("Saved!"); } },
             async syncToGithub(silent = false) { if(!this.githubToken) return; this.isLoading = true; const data = { e: this.employees, w: this.workTypes, r: this.workEntries }; try { await fetch(`https://api.github.com/gists/${this.gistId}`, { method: 'PATCH', headers: { 'Authorization': `Bearer ${this.githubToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ files: { 'sanskar_db.json': { content: JSON.stringify(data) } } }) }); if(!silent) alert("Data Saved Online!"); } catch(e) { console.error(e); } this.isLoading = false; },
             async syncFromGithub() { if(!this.githubToken) return; this.isLoading = true; try { const res = await fetch(`https://api.github.com/gists/${this.gistId}`, { headers: { 'Authorization': `Bearer ${this.githubToken}` } }); const gist = await res.json(); if(gist.files['sanskar_db.json']) { const data = JSON.parse(gist.files['sanskar_db.json'].content); this.employees = data.e || []; this.workTypes = data.w || []; this.workEntries = data.r || []; this.saveData(); } } catch(e) { console.error(e); } this.isLoading = false; },
-            
-            // --- MARK AS PAID LOGIC ---
             togglePaid(rec) { rec.isPaid = !rec.isPaid; this.saveData(); },
-            bulkMarkAsPaid() {
-                if(this.filteredEntries.length === 0) return alert("No entries to mark.");
-                if(confirm("Mark all visible entries as PAID? (They will move to Paid list)")) {
-                    this.filteredEntries.forEach(rec => rec.isPaid = true);
-                    this.saveData();
-                }
-            },
-
+            bulkMarkAsPaid() { if(this.filteredEntries.length === 0) return alert("No entries"); if(confirm("Mark visible as PAID?")) { this.filteredEntries.forEach(rec => rec.isPaid = true); this.saveData(); } },
             addWorkType() { if(this.newWorkType.name) { this.workTypes.push({...this.newWorkType}); this.saveData(); } },
             deleteWorkType(i) { this.workTypes.splice(i,1); this.saveData(); },
             getSelectedWorkUnit() { if(this.entry.workIndex === '') return 'Diamond'; return this.workTypes[this.entry.workIndex].unit || 'Diamond'; },
@@ -404,27 +414,20 @@
             navClass(view) { return this.currentView === view ? 'w-full text-left p-3 rounded bg-blue-700 text-white font-bold' : 'w-full text-left p-3 rounded hover:bg-slate-800 text-gray-300'; },
             formatDate(d) { const date = new Date(d); return `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}`; },
             bulkPrintSlips() { if(this.filteredEntries.length === 0) return alert("No entries"); this.printType = 'slips'; this.printQueue = this.filteredEntries; setTimeout(() => window.print(), 500); },
-            
-            // REPORT GENERATION WITH PAID FILTER
             generateReportData() {
-                // Filter specifically for Report based on filterReportStatus
                 const start = new Date(this.filterDateFrom).setHours(0,0,0,0); const end = new Date(this.filterDateTo).setHours(23,59,59,999);
                 const entries = this.workEntries.filter(rec => {
                     const recDate = new Date(rec.dateTo).getTime();
                     const dateMatch = recDate >= start && recDate <= end;
-                    
                     let deptMatch = true;
                     if (this.selectedDepts.length > 0) {
                         if (rec.role === 'Manager') { deptMatch = this.selectedDepts.includes('Manager'); }
                         else { deptMatch = this.selectedDepts.includes(rec.dept); }
                     }
-
                     let statusMatch = true;
                     if(this.filterReportStatus === 'Pending') statusMatch = !rec.isPaid;
-                    // if 'All', we take everything
                     return dateMatch && deptMatch && statusMatch;
                 });
-
                 if(entries.length === 0) return alert("No data found");
                 const summary = {}; 
                 entries.forEach(rec => { if(!summary[rec.empName + rec.dept]) { summary[rec.empName + rec.dept] = { name: rec.empName, village: rec.village, dept: rec.dept, workSalary: 0, totalBaki: 0, deduction: 0, pf: 0 }; } summary[rec.empName + rec.dept].workSalary += parseFloat(rec.totalSalary); });
