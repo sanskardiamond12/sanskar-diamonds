@@ -10,15 +10,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans Gujarati', sans-serif; background-color: #f3f4f6; }
+        
+        /* Sidebar Animations */
         .sidebar { transition: transform 0.3s ease-in-out; }
         .sidebar-closed { transform: translateX(-100%); }
         .sidebar-open { transform: translateX(0); }
         @media (min-width: 768px) { .sidebar-closed { transform: translateX(0); } .mobile-header { display: none; } }
         
+        /* Dropdown */
         .dept-dropdown { position: absolute; background: white; border: 1px solid #ccc; padding: 10px; z-index: 50; width: 200px; max-height: 300px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 8px; }
         .dept-item { display: flex; align-items: center; padding: 5px; cursor: pointer; }
         .dept-item:hover { background-color: #f0f9ff; }
         
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #1e3a8a; border-radius: 4px; }
+        
+        /* Print Styles */
         @media print {
             body * { visibility: hidden; }
             .print-only, .print-only * { visibility: visible; }
@@ -37,281 +46,488 @@
 <body class="text-slate-800">
 
 <div id="app">
-    <div v-if="!isLoggedIn" class="flex items-center justify-center h-screen bg-slate-900">
-        <div class="bg-white p-8 rounded-lg shadow-2xl w-96 text-center">
-            <h1 class="text-3xl font-bold text-blue-900 mb-2">SANSKAR DIAMOND</h1>
-            <p class="text-gray-500 mb-6">Manager Login</p>
-            <input type="password" v-model="loginPin" placeholder="PIN (1234)" class="w-full p-3 border rounded mb-4 text-center text-xl tracking-widest">
-            <button @click="login" class="w-full bg-blue-900 text-white py-3 rounded hover:bg-blue-800 transition">Login</button>
+    
+    <div v-if="!isLoggedIn" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 px-4">
+        <div class="bg-white p-8 sm:p-10 rounded-2xl shadow-2xl w-full max-w-md text-center transform transition-all border-t-8 border-blue-500 relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-50 rounded-full opacity-50"></div>
+            
+            <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner relative z-10">
+                <i class="fa-solid fa-gem"></i>
+            </div>
+            
+            <h1 class="text-3xl font-extrabold text-slate-800 tracking-wider mb-1">SANSKAR</h1>
+            <p class="text-sm font-bold text-blue-500 uppercase tracking-widest mb-8">Diamond Factory</p>
+            
+            <div class="text-left mb-6 relative z-10">
+                <label class="block text-gray-500 text-xs font-bold mb-2 uppercase tracking-wide"><i class="fa-solid fa-lock mr-1"></i> Manager PIN</label>
+                <input 
+                    type="password" 
+                    v-model="loginPin" 
+                    @keyup.enter="login"
+                    placeholder="••••" 
+                    class="w-full p-4 border border-gray-300 rounded-lg text-center text-3xl tracking-[0.5em] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition shadow-inner bg-gray-50"
+                >
+            </div>
+            
+            <button @click="login" class="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-4 rounded-lg font-bold hover:shadow-lg hover:from-blue-700 hover:to-blue-900 transition-all text-lg shadow relative z-10 flex justify-center items-center gap-2">
+                SECURE LOGIN <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            </button>
+            <p class="mt-6 text-xs text-gray-400 font-mono">System PIN required to access (1234)</p>
         </div>
     </div>
 
-    <div v-else class="min-h-screen flex flex-col md:flex-row relative">
+    <div v-else class="min-h-screen flex flex-col md:flex-row relative bg-gray-50">
+        
         <header class="mobile-header bg-slate-900 text-white p-4 flex justify-between items-center w-full md:hidden fixed top-0 z-50 shadow-md">
-            <h2 class="font-bold text-lg">💎 SANSKAR</h2>
-            <button @click="toggleMenu" class="text-2xl focus:outline-none"><i class="fa-solid fa-bars"></i></button>
+            <h2 class="font-bold text-lg tracking-widest"><i class="fa-solid fa-gem text-blue-400 mr-2"></i> SANSKAR</h2>
+            <button @click="toggleMenu" class="text-2xl focus:outline-none hover:text-blue-300 transition"><i class="fa-solid fa-bars"></i></button>
         </header>
 
-        <aside :class="['bg-slate-900 text-white w-64 p-4 flex-shrink-0 sidebar fixed md:relative h-full z-40 pt-20 md:pt-4', isMobileMenuOpen ? 'sidebar-open' : 'sidebar-closed']">
-            <h2 class="text-xl font-bold mb-6 text-center border-b border-slate-700 pb-4 hidden md:block">💎 SANSKAR</h2>
-            <nav class="space-y-2">
-                <button @click="navigate('dashboard')" :class="navClass('dashboard')"><i class="fa-solid fa-chart-line mr-2"></i> Dashboard</button>
-                <button @click="navigate('entry')" :class="navClass('entry')"><i class="fa-solid fa-calculator mr-2"></i> Work Entry</button>
-                <button @click="navigate('history')" :class="navClass('history')"><i class="fa-solid fa-receipt mr-2"></i> Pavti & History</button>
-                <button @click="navigate('report')" :class="navClass('report')"><i class="fa-solid fa-table-list mr-2"></i> Salary Report</button>
-                <button @click="navigate('employees')" :class="navClass('employees')"><i class="fa-solid fa-users mr-2"></i> Employees</button>
-                <button @click="navigate('settings')" :class="navClass('settings')"><i class="fa-solid fa-gear mr-2"></i> Settings</button>
-                <button @click="navigate('cloud')" :class="navClass('cloud')"><i class="fa-brands fa-github mr-2"></i> Cloud Sync</button>
-                <button @click="logout" class="w-full text-left p-3 rounded hover:bg-red-700 mt-10"><i class="fa-solid fa-power-off mr-2"></i> Logout</button>
-            </nav>
-        </aside>
-        <div v-if="isMobileMenuOpen" @click="toggleMenu" class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"></div>
+        <aside :class="['bg-slate-900 text-white w-64 p-4 flex-shrink-0 sidebar fixed md:relative h-full z-40 pt-20 md:pt-4 flex flex-col shadow-2xl', isMobileMenuOpen ? 'sidebar-open' : 'sidebar-closed']">
+            
+            <div class="hidden md:flex flex-col items-center mb-6 border-b border-slate-700 pb-6 mt-2">
+                <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-3 shadow-inner border border-slate-700">
+                    <i class="fa-solid fa-gem text-2xl text-blue-400"></i>
+                </div>
+                <h2 class="text-xl font-bold tracking-widest">SANSKAR</h2>
+                <span class="text-[10px] text-blue-400 opacity-80 uppercase tracking-widest mt-1">Manager Portal</span>
+            </div>
 
-        <main class="flex-1 p-4 md:p-8 overflow-y-auto mt-16 md:mt-0 hidden-print">
+            <nav class="space-y-2 flex-1 overflow-y-auto pr-2">
+                <button @click="navigate('dashboard')" :class="navClass('dashboard')"><i class="fa-solid fa-chart-line w-6 text-center"></i> Dashboard</button>
+                <button @click="navigate('entry')" :class="navClass('entry')"><i class="fa-solid fa-calculator w-6 text-center"></i> Work Entry</button>
+                <button @click="navigate('history')" :class="navClass('history')"><i class="fa-solid fa-receipt w-6 text-center"></i> Pavti & History</button>
+                <button @click="navigate('report')" :class="navClass('report')"><i class="fa-solid fa-table-list w-6 text-center"></i> Salary Report</button>
+                <div class="my-4 border-b border-slate-700 opacity-50"></div>
+                <button @click="navigate('employees')" :class="navClass('employees')"><i class="fa-solid fa-users w-6 text-center"></i> Employees</button>
+                <button @click="navigate('settings')" :class="navClass('settings')"><i class="fa-solid fa-gear w-6 text-center"></i> Settings & Rates</button>
+                <button @click="navigate('cloud')" :class="navClass('cloud')"><i class="fa-brands fa-github w-6 text-center"></i> Cloud Sync</button>
+            </nav>
+
+            <div class="mt-auto pt-4 border-t border-slate-700">
+                <button @click="logout" class="w-full text-left p-3 rounded bg-red-600 hover:bg-red-700 text-white transition flex items-center font-bold shadow">
+                    <i class="fa-solid fa-power-off w-6 text-center"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <div v-if="isMobileMenuOpen" @click="toggleMenu" class="fixed inset-0 bg-black bg-opacity-60 z-30 md:hidden backdrop-blur-sm transition-opacity"></div>
+
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto mt-16 md:mt-0 hidden-print bg-gray-50">
             
             <div v-if="currentView === 'dashboard'">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold">Overview</h2>
-                    <span v-if="githubToken" class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded border border-green-200">🟢 Online Auto-Save ON</span>
+                    <span v-if="githubToken" class="text-xs px-3 py-1.5 rounded-full border font-bold shadow-sm transition-colors duration-300" :class="isSyncing ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 'bg-green-100 text-green-800 border-green-200'">
+                        <i class="fa-solid" :class="isSyncing ? 'fa-arrows-rotate fa-spin mr-1' : 'fa-cloud-arrow-up mr-1'"></i> 
+                        {{ isSyncing ? 'Saving Online...' : 'Auto-Save ON' }}
+                    </span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded shadow border-l-4 border-red-500">
-                        <p class="text-gray-500 text-sm font-bold">Pending Salary (બાકી પગાર)</p>
-                        <h3 class="text-3xl font-bold text-red-600">₹ {{ totalPendingAmount }}</h3>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                        <p class="text-gray-500 text-sm font-bold uppercase tracking-wider">Pending Salary (બાકી પગાર)</p>
+                        <h3 class="text-3xl font-extrabold text-red-600 mt-2">₹ {{ totalPendingAmount }}</h3>
                     </div>
-                    <div class="bg-white p-6 rounded shadow border-l-4 border-green-500">
-                        <p class="text-gray-500 text-sm font-bold">Total Paid (ચૂકવેલ)</p>
-                        <h3 class="text-3xl font-bold text-green-700">₹ {{ totalPaidAmount }}</h3>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                        <p class="text-gray-500 text-sm font-bold uppercase tracking-wider">Total Paid (ચૂકવેલ)</p>
+                        <h3 class="text-3xl font-extrabold text-green-700 mt-2">₹ {{ totalPaidAmount }}</h3>
                     </div>
                 </div>
             </div>
 
             <div v-if="currentView === 'cloud'">
                 <h2 class="text-2xl font-bold mb-6">☁️ Cloud Sync</h2>
-                <div v-if="!githubToken" class="bg-yellow-50 p-6 rounded border border-yellow-200 mb-6">
+                <div v-if="!githubToken" class="bg-yellow-50 p-6 rounded-xl border border-yellow-200 mb-6 shadow-sm">
                     <h3 class="font-bold text-yellow-800 mb-2">Setup Required</h3>
                     <div class="space-y-3">
-                        <input v-model="inputToken" placeholder="GitHub Token" class="w-full p-2 border rounded text-xs">
-                        <input v-model="inputGistId" placeholder="Gist ID" class="w-full p-2 border rounded text-xs">
-                        <button @click="saveGithubSettings" class="bg-blue-900 text-white px-4 py-2 rounded text-sm">Save Settings</button>
+                        <input v-model="inputToken" placeholder="GitHub Token" class="w-full p-3 border rounded-lg text-sm bg-white">
+                        <input v-model="inputGistId" placeholder="Gist ID" class="w-full p-3 border rounded-lg text-sm bg-white">
+                        <button @click="saveGithubSettings" class="bg-blue-900 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow hover:bg-blue-800 transition">Save Settings</button>
                     </div>
                 </div>
                 <div v-else class="grid grid-cols-1 gap-6">
-                     <div class="bg-gradient-to-r from-purple-500 to-indigo-600 p-6 rounded shadow text-white">
-                        <h3 class="font-bold text-lg mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Magic Login Link</h3>
-                        <p class="text-sm mb-4 opacity-90">Send this link to login automatically on another device.</p>
-                        <button @click="generateMagicLink" class="bg-white text-indigo-700 px-6 py-3 rounded font-bold shadow hover:bg-gray-100"><i class="fa-brands fa-whatsapp"></i> Copy Link</button>
+                     <div class="bg-gradient-to-r from-purple-500 to-indigo-600 p-6 rounded-xl shadow-md text-white">
+                        <h3 class="font-bold text-xl mb-2"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Magic Login Link</h3>
+                        <p class="text-sm mb-5 opacity-90">Send this link to login automatically on another device.</p>
+                        <button @click="generateMagicLink" class="bg-white text-indigo-700 px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-gray-100 transition flex items-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-green-500 text-lg"></i> Copy & Share Link
+                        </button>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white p-4 rounded shadow border-t-4 border-blue-500"><button @click="syncToGithub(false)" class="bg-blue-100 text-blue-800 px-4 py-2 rounded w-full text-sm">Force Save</button></div>
-                        <div class="bg-white p-4 rounded shadow border-t-4 border-green-500"><button @click="syncFromGithub" class="bg-green-100 text-green-800 px-4 py-2 rounded w-full text-sm">Reload Data</button></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-blue-500">
+                            <h4 class="font-bold mb-3 text-gray-700">Backup Data</h4>
+                            <button @click="syncToGithub(false)" class="bg-blue-50 text-blue-800 border border-blue-200 px-4 py-3 rounded-lg w-full text-sm font-bold hover:bg-blue-100 transition">
+                                <i class="fa-solid" :class="isSyncing ? 'fa-arrows-rotate fa-spin mr-2' : 'fa-cloud-arrow-up mr-2'"></i> {{ isSyncing ? 'Saving Online...' : 'Force Save Online' }}
+                            </button>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-green-500">
+                            <h4 class="font-bold mb-3 text-gray-700">Restore Data</h4>
+                            <button @click="syncFromGithub" class="bg-green-50 text-green-800 border border-green-200 px-4 py-3 rounded-lg w-full text-sm font-bold hover:bg-green-100 transition"><i class="fa-solid fa-cloud-arrow-down mr-2"></i> Reload From Cloud</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div v-if="currentView === 'settings'">
-                <h2 class="text-2xl font-bold mb-6">⚙️ Settings</h2>
+                <h2 class="text-2xl font-bold mb-6">⚙️ Settings & Rates</h2>
                 
-                <div class="bg-red-50 p-6 rounded border border-red-200 mb-8">
-                    <h3 class="font-bold text-red-900 mb-2"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone (ડેટા સાફ કરો)</h3>
-                    <p class="text-xs text-red-600 mb-4">અહીંથી તમે ટેસ્ટિંગ માટે નાખેલો ડેટા કાઢી શકો છો.</p>
-                    
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <button @click="clearAllEntries" class="bg-white border border-red-500 text-red-600 px-4 py-2 rounded text-sm hover:bg-red-50">
-                            🗑️ Delete All History (બધો હિસાબ કાઢો)
-                        </button>
-                        <button @click="factoryReset" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">
-                            ⚠️ Factory Reset (બધું જ કાઢો)
-                        </button>
+                <div class="bg-white p-6 rounded-xl shadow-sm mb-6 border border-gray-100">
+                    <h3 class="font-bold mb-4 text-lg">Add New Rate (વર્ક ટાઇપ)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input v-model="newWorkType.name" placeholder="Work Name" class="border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:outline-none">
+                        <input v-model="newWorkType.rate" type="number" placeholder="Rate (₹)" class="border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:outline-none">
+                        <select v-model="newWorkType.unit" class="border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:outline-none">
+                            <option value="Diamond">Per Diamond</option>
+                            <option value="Day">Per Day</option>
+                        </select>
+                        <button @click="addWorkType" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow hover:bg-green-700 transition md:col-span-3">Add Work Rate</button>
                     </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border border-gray-100">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-600 text-sm">
+                            <tr><th class="p-4 border-b">Work Name</th><th class="p-4 border-b">Rate (₹)</th><th class="p-4 border-b">Type</th><th class="p-4 border-b text-center">Action</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(w, i) in workTypes" :key="i" class="border-b last:border-0 hover:bg-gray-50 transition">
+                                <td class="p-4 font-bold text-gray-800">{{w.name}}</td>
+                                <td class="p-4 text-green-600 font-bold">₹ {{w.rate}}</td>
+                                <td class="p-4 text-xs"><span class="bg-gray-200 px-2 py-1 rounded">{{w.unit}}</span></td>
+                                <td class="p-4 text-center"><button @click="deleteWorkType(i)" class="text-red-500 hover:bg-red-50 p-2 rounded-full transition"><i class="fa-solid fa-trash"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <div class="bg-white p-6 rounded shadow mb-6">
-                    <h3 class="font-bold mb-4">Add Rate</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <input v-model="newWorkType.name" placeholder="Name" class="border p-2 rounded">
-                        <input v-model="newWorkType.rate" type="number" placeholder="Rate" class="border p-2 rounded">
-                        <select v-model="newWorkType.unit" class="border p-2 rounded bg-gray-50"><option value="Diamond">Per Diamond</option><option value="Day">Per Day</option></select>
-                        <button @click="addWorkType" class="bg-green-600 text-white px-6 py-2 rounded">Add</button>
+                <div class="bg-red-50 p-6 rounded-xl border border-red-200 shadow-sm">
+                    <h3 class="font-bold text-red-900 mb-2 text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Danger Zone (ડેટા સાફ કરો)</h3>
+                    <p class="text-sm text-red-700 mb-5">અહીંથી તમે ટેસ્ટિંગ માટે નાખેલો ડેટા કાઢી શકો છો.</p>
+                    
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <button @click="clearAllEntries" class="bg-white border-2 border-red-400 text-red-600 px-6 py-3 rounded-lg font-bold shadow-sm hover:bg-red-50 transition flex-1">
+                            <i class="fa-solid fa-eraser mr-2"></i> Delete All History (બધો હિસાબ કાઢો)
+                        </button>
+                        <button @click="factoryReset" class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold shadow-md hover:bg-red-700 transition flex-1">
+                            <i class="fa-solid fa-skull-crossbones mr-2"></i> Factory Reset (બધું જ કાઢો)
+                        </button>
                     </div>
-                </div>
-                <div class="bg-white rounded shadow">
-                    <table class="w-full text-left"><thead class="bg-gray-100"><tr><th class="p-4">Name</th><th class="p-4">Rate</th><th class="p-4">Type</th><th class="p-4">Action</th></tr></thead>
-                    <tbody><tr v-for="(w, i) in workTypes" :key="i" class="border-b"><td class="p-4">{{w.name}}</td><td class="p-4">{{w.rate}}</td><td class="p-4">{{w.unit}}</td><td class="p-4"><button @click="deleteWorkType(i)" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr></tbody></table>
                 </div>
             </div>
 
             <div v-if="currentView === 'employees'">
                 <h2 class="text-2xl font-bold mb-6">👥 Employees</h2>
-                <div class="bg-white p-6 rounded shadow mb-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm mb-6 border border-gray-100">
+                    <h3 class="font-bold mb-4">Add New Employee</h3>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <input v-model="newEmp.name" placeholder="Name" class="border p-2 rounded">
-                        <input v-model="newEmp.village" placeholder="Village" class="border p-2 rounded">
-                        <input v-model="newEmp.dept" placeholder="Dept" class="border p-2 rounded">
-                        <button @click="addEmployee" class="bg-blue-600 text-white px-6 py-2 rounded md:col-span-4">Save</button>
+                        <input v-model="newEmp.name" placeholder="Name" class="border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:outline-none">
+                        <input v-model="newEmp.village" placeholder="Village" class="border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:outline-none">
+                        <input v-model="newEmp.dept" placeholder="Department" class="border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:outline-none">
+                        <button @click="addEmployee" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold shadow hover:bg-blue-700 transition md:col-span-4">Save Employee</button>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div v-for="(e, i) in employees" :key="i" class="bg-white p-4 rounded shadow border flex justify-between relative">
-                        <div><h4 class="font-bold">{{e.name}}</h4><p class="text-sm">{{e.village}} • {{e.dept}}</p></div>
-                        <button @click="deleteEmployee(i)" class="text-red-400"><i class="fa-solid fa-trash"></i></button>
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div v-for="(e, i) in employees" :key="i" class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex justify-between relative hover:shadow-md transition group">
+                        <div>
+                            <h4 class="font-bold text-gray-800 text-lg">{{e.name}}</h4>
+                            <p class="text-sm text-gray-500 mt-1"><i class="fa-solid fa-location-dot mr-1"></i> {{e.village}}</p>
+                            <span class="inline-block mt-2 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded font-bold border border-blue-100">{{e.dept}}</span>
+                        </div>
+                        <button @click="deleteEmployee(i)" class="text-gray-300 hover:text-red-500 transition absolute top-3 right-3 opacity-0 group-hover:opacity-100"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             </div>
 
             <div v-if="currentView === 'entry'">
                 <h2 class="text-2xl font-bold mb-6">💎 Work Entry</h2>
-                <div class="bg-white p-6 rounded shadow max-w-2xl mx-auto">
-                    <div class="mb-4"><label class="block font-bold mb-1">Select Person</label><select v-model="entry.empIndex" class="w-full p-3 border rounded"><option value="" disabled>Select...</option><option v-for="(e, i) in employees" :value="i">{{e.name}} ({{e.dept}})</option></select></div>
-                    <div class="grid grid-cols-2 gap-4 mb-4"><div><label class="block text-sm">From</label><input type="date" v-model="entry.dateFrom" class="w-full p-2 border rounded"></div><div><label class="block text-sm">To</label><input type="date" v-model="entry.dateTo" class="w-full p-2 border rounded"></div></div>
-                    <div class="mb-4"><label class="block font-bold mb-1">Work Type</label><select v-model="entry.workIndex" class="w-full p-3 border rounded bg-gray-50" @change="calculateTotal"><option value="" disabled>Select...</option><option v-for="(w, i) in workTypes" :value="i">{{w.name}} - {{w.rate}}</option></select></div>
-                    <div class="mb-6" v-if="entry.workIndex !== ''"><label class="block font-bold mb-1 text-blue-800">{{ getSelectedWorkUnit() === 'Day' ? 'Total Days' : 'Total Diamonds' }}</label><input type="number" v-model="entry.diamonds" @input="calculateTotal" class="w-full p-3 border rounded text-xl"></div>
-                    <div class="bg-blue-100 p-4 rounded text-center mb-6"><h2 class="text-4xl font-bold text-blue-900">₹ {{ entry.totalSalary }}</h2></div>
-                    <button @click="saveEntry" class="w-full bg-blue-900 text-white py-4 rounded font-bold hover:bg-blue-800">SAVE & PRINT</button>
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 max-w-2xl mx-auto">
+                    <div class="mb-5">
+                        <label class="block font-bold text-gray-700 mb-2">Select Person</label>
+                        <select v-model="entry.empIndex" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:outline-none text-lg font-bold bg-gray-50">
+                            <option value="" disabled>-- Select Employee --</option>
+                            <option v-for="(e, i) in employees" :value="i">{{e.name}} ({{e.dept}})</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-5">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-600 mb-1">From Date</label>
+                            <input type="date" v-model="entry.dateFrom" class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-600 mb-1">To Date</label>
+                            <input type="date" v-model="entry.dateTo" class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                        </div>
+                    </div>
+                    <div class="mb-5">
+                        <label class="block font-bold text-gray-700 mb-2">Work Type</label>
+                        <select v-model="entry.workIndex" class="w-full p-4 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-200 text-lg" @change="calculateTotal">
+                            <option value="" disabled>-- Select Process --</option>
+                            <option v-for="(w, i) in workTypes" :value="i">{{w.name}} - ₹{{w.rate}}</option>
+                        </select>
+                    </div>
+                    <div class="mb-6" v-if="entry.workIndex !== ''">
+                        <label class="block font-bold mb-2 text-blue-800 bg-blue-50 px-3 py-1 rounded inline-block">
+                            {{ getSelectedWorkUnit() === 'Day' ? 'Total Days Present' : 'Total Diamonds Count' }}
+                        </label>
+                        <input type="number" v-model="entry.diamonds" @input="calculateTotal" class="w-full p-4 border border-blue-300 rounded-lg text-2xl font-bold bg-white focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-6 rounded-xl text-center mb-6 shadow-inner">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Calculated Salary</p>
+                        <h2 class="text-5xl font-extrabold text-blue-900">₹ {{ entry.totalSalary }}</h2>
+                    </div>
+                    
+                    <button @click="saveEntry" class="w-full bg-gradient-to-r from-blue-700 to-blue-900 text-white py-4 rounded-xl font-bold hover:shadow-lg hover:from-blue-800 hover:to-slate-900 transition-all text-lg shadow flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> SAVE & PRINT ENTRY
+                    </button>
                 </div>
             </div>
 
             <div v-if="currentView === 'history'">
                 <h2 class="text-2xl font-bold mb-6">📜 Pavti & History</h2>
-                <div class="bg-blue-50 p-6 rounded border border-blue-200 mb-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
                     <div class="flex flex-col md:flex-row gap-4 items-end flex-wrap">
-                        <div><label class="block text-xs font-bold">From</label><input type="date" v-model="filterDateFrom" class="p-2 border rounded"></div>
-                        <div><label class="block text-xs font-bold">To</label><input type="date" v-model="filterDateTo" class="p-2 border rounded"></div>
-                        <div>
-                            <label class="block text-xs font-bold">Status</label>
-                            <select v-model="filterStatus" class="p-2 border rounded w-32 bg-white">
-                                <option value="Pending">Only Pending</option>
-                                <option value="Paid">Only Paid</option>
-                                <option value="All">All</option>
+                        <div class="flex-1 min-w-[150px]">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Date From</label>
+                            <input type="date" v-model="filterDateFrom" class="w-full p-3 border rounded-lg bg-gray-50">
+                        </div>
+                        <div class="flex-1 min-w-[150px]">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Date To</label>
+                            <input type="date" v-model="filterDateTo" class="w-full p-3 border rounded-lg bg-gray-50">
+                        </div>
+                        <div class="flex-1 min-w-[150px]">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Payment Status</label>
+                            <select v-model="filterStatus" class="w-full p-3 border rounded-lg bg-white font-bold">
+                                <option value="Pending">Only Pending ⏳</option>
+                                <option value="Paid">Only Paid ✅</option>
+                                <option value="All">Show All 📋</option>
                             </select>
                         </div>
-                        <div class="relative">
-                            <label class="block text-xs font-bold">Depts ({{ selectedDepts.length || 'All' }})</label>
-                            <button @click="showDeptDropdown = !showDeptDropdown" class="p-2 border rounded bg-white w-40 text-left text-sm flex justify-between items-center">
-                                {{ selectedDepts.length > 0 ? selectedDepts.length + ' Selected' : 'Select All' }} <i class="fa-solid fa-chevron-down"></i>
+                        <div class="relative flex-1 min-w-[150px]">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Department Filter ({{ selectedDepts.length || 'All' }})</label>
+                            <button @click="showDeptDropdown = !showDeptDropdown" class="w-full p-3 border rounded-lg bg-white text-left font-bold flex justify-between items-center shadow-sm">
+                                {{ selectedDepts.length > 0 ? selectedDepts.length + ' Selected' : 'Select All Depts' }} <i class="fa-solid fa-chevron-down text-gray-400"></i>
                             </button>
-                            <div v-if="showDeptDropdown" class="dept-dropdown">
-                                <div class="dept-item font-bold border-b" @click="selectedDepts = []"><span class="w-4 h-4 border mr-2 flex items-center justify-center"><i v-if="selectedDepts.length===0" class="fa-solid fa-check text-xs"></i></span> All Staff</div>
-                                <div class="dept-item border-b text-purple-700" @click="toggleDept('Manager')"><span class="w-4 h-4 border mr-2 flex items-center justify-center"><i v-if="selectedDepts.includes('Manager')" class="fa-solid fa-check text-xs"></i></span> Managers</div>
-                                <div v-for="dept in uniqueDepts" :key="dept" class="dept-item" @click="toggleDept(dept)">
-                                    <span class="w-4 h-4 border mr-2 flex items-center justify-center"><i v-if="selectedDepts.includes(dept)" class="fa-solid fa-check text-xs"></i></span> {{ dept }}
+                            <div v-if="showDeptDropdown" class="dept-dropdown mt-1">
+                                <div class="dept-item font-bold border-b pb-2 mb-2" @click="selectedDepts = []"><span class="w-4 h-4 border rounded mr-2 flex items-center justify-center bg-gray-50"><i v-if="selectedDepts.length===0" class="fa-solid fa-check text-[10px] text-green-600"></i></span> All Staff</div>
+                                <div class="dept-item text-purple-700 font-bold mb-1" @click="toggleDept('Manager')"><span class="w-4 h-4 border rounded mr-2 flex items-center justify-center bg-purple-50"><i v-if="selectedDepts.includes('Manager')" class="fa-solid fa-check text-[10px] text-purple-600"></i></span> Managers</div>
+                                <div v-for="dept in uniqueDepts" :key="dept" class="dept-item text-gray-700" @click="toggleDept(dept)">
+                                    <span class="w-4 h-4 border rounded mr-2 flex items-center justify-center bg-gray-50"><i v-if="selectedDepts.includes(dept)" class="fa-solid fa-check text-[10px] text-blue-600"></i></span> {{ dept }}
                                 </div>
                             </div>
                         </div>
-                        <button @click="bulkPrintSlips" class="bg-gray-800 text-white px-4 py-2 rounded text-sm"><i class="fa-solid fa-print"></i> Print Slips</button>
-                        <button @click="bulkMarkAsPaid" class="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold shadow-lg transform hover:scale-105 transition"><i class="fa-solid fa-check-double"></i> Mark All as PAID</button>
+                        
+                        <div class="w-full md:w-auto flex gap-2 mt-4 md:mt-0">
+                            <button @click="bulkPrintSlips" class="bg-slate-800 text-white px-6 py-3 rounded-lg font-bold shadow hover:bg-slate-900 transition flex items-center justify-center flex-1"><i class="fa-solid fa-print mr-2"></i> Print Slips</button>
+                            <button @click="bulkMarkAsPaid" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-green-700 transition transform hover:scale-105 flex items-center justify-center flex-1"><i class="fa-solid fa-check-double mr-2"></i> Mark PAID</button>
+                        </div>
                     </div>
                 </div>
-                <div class="bg-white rounded shadow overflow-x-auto">
-                    <table class="w-full text-left whitespace-nowrap">
-                        <thead class="bg-gray-100"><tr><th class="p-3">Name</th><th class="p-3">Dept</th><th class="p-3">Total</th><th class="p-3">Status</th><th class="p-3">Action</th></tr></thead>
-                        <tbody>
-                            <tr v-for="(rec, idx) in filteredEntries" :key="idx" class="border-b" :class="rec.isPaid ? 'bg-gray-50 opacity-70' : ''">
-                                <td class="p-3 font-bold">{{ rec.empName }}</td>
-                                <td class="p-3 text-xs">{{ rec.dept }}</td>
-                                <td class="p-3 font-bold text-green-600">{{ rec.totalSalary }}</td>
-                                <td class="p-3 text-xs">
-                                    <span v-if="rec.isPaid" class="bg-green-100 text-green-800 px-2 py-1 rounded">Paid</span>
-                                    <span v-else class="bg-red-100 text-red-800 px-2 py-1 rounded">Pending</span>
-                                </td>
-                                <td class="p-3">
-                                    <button @click="togglePaid(rec)" class="text-blue-500 text-xs underline mr-2">{{ rec.isPaid ? 'Undo' : 'Pay' }}</button>
-                                    <button @click="deleteEntry(idx)" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left whitespace-nowrap">
+                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                <tr><th class="p-4 border-b">Name & Info</th><th class="p-4 border-b">Work Dates</th><th class="p-4 border-b text-right">Total Salary</th><th class="p-4 border-b text-center">Status</th><th class="p-4 border-b text-center">Action</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(rec, idx) in filteredEntries" :key="idx" class="border-b last:border-0 transition duration-150" :class="rec.isPaid ? 'bg-green-50/30 opacity-75' : 'hover:bg-blue-50'">
+                                    <td class="p-4">
+                                        <div class="font-bold text-gray-800 text-base">{{ rec.empName }}</div>
+                                        <div class="text-xs text-gray-500 mt-1"><span class="bg-gray-200 px-2 py-0.5 rounded mr-1">{{ rec.dept }}</span> {{ rec.workName }} • {{ rec.diamonds }} qty</div>
+                                    </td>
+                                    <td class="p-4 text-sm text-gray-600">
+                                        <div class="font-mono">{{ formatDate(rec.dateFrom) }}</div>
+                                        <div class="font-mono text-xs text-gray-400">to {{ formatDate(rec.dateTo) }}</div>
+                                    </td>
+                                    <td class="p-4 font-bold text-green-600 text-right text-lg">₹ {{ rec.totalSalary }}</td>
+                                    <td class="p-4 text-center">
+                                        <span v-if="rec.isPaid" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold border border-green-200"><i class="fa-solid fa-check mr-1"></i> Paid</span>
+                                        <span v-else class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold border border-yellow-200"><i class="fa-regular fa-clock mr-1"></i> Pending</span>
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <button @click="togglePaid(rec)" class="mr-3 p-2 rounded-full transition" :class="rec.isPaid ? 'text-orange-500 hover:bg-orange-100' : 'text-green-600 hover:bg-green-100 bg-green-50 shadow-sm border border-green-200'" :title="rec.isPaid ? 'Mark Pending' : 'Mark Paid'">
+                                            <i :class="rec.isPaid ? 'fa-solid fa-rotate-left' : 'fa-solid fa-check'"></i>
+                                        </button>
+                                        <button @click="deleteEntry(idx)" class="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-full transition" title="Delete Entry"><i class="fa-solid fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr v-if="filteredEntries.length === 0">
+                                    <td colspan="5" class="p-8 text-center text-gray-400">No records found for the selected filters.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <div v-if="currentView === 'report'">
-                <h2 class="text-2xl font-bold mb-6">📊 Report</h2>
-                <div class="bg-green-50 p-6 rounded border border-green-200 mb-6">
+                <h2 class="text-2xl font-bold mb-6">📊 Advanced Salary Report</h2>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
                     <div class="flex flex-col md:flex-row gap-4 items-end flex-wrap">
-                        <div><input type="date" v-model="filterDateFrom" class="p-2 border rounded"></div>
-                        <div><input type="date" v-model="filterDateTo" class="p-2 border rounded"></div>
-                        <div>
-                             <label class="block text-xs font-bold">Include Paid?</label>
-                             <select v-model="filterReportStatus" class="p-2 border rounded bg-white">
-                                <option value="Pending">Only Pending (Unpaid)</option>
-                                <option value="All">All (Paid + Unpaid)</option>
+                        <div class="flex-1 min-w-[140px]">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">From Date</label>
+                            <input type="date" v-model="filterDateFrom" class="w-full p-2.5 border rounded-lg bg-gray-50">
+                        </div>
+                        <div class="flex-1 min-w-[140px]">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">To Date</label>
+                            <input type="date" v-model="filterDateTo" class="w-full p-2.5 border rounded-lg bg-gray-50">
+                        </div>
+                        <div class="flex-1 min-w-[180px]">
+                             <label class="block text-xs font-bold text-gray-600 mb-1">Payment Filter</label>
+                             <select v-model="filterReportStatus" class="w-full p-2.5 border rounded-lg bg-white font-bold">
+                                <option value="Pending">Unpaid (Pending) Only</option>
+                                <option value="All">Show All (Paid + Unpaid)</option>
                              </select>
                         </div>
-                        <div class="relative">
-                            <label class="block text-xs font-bold">Depts</label>
-                            <button @click="showDeptDropdown = !showDeptDropdown" class="p-2 border rounded bg-white w-40 text-left text-sm flex justify-between items-center">
-                                {{ selectedDepts.length > 0 ? selectedDepts.length + ' Selected' : 'Select All' }} <i class="fa-solid fa-chevron-down"></i>
+                        <div class="relative flex-1 min-w-[160px]">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Departments Filter</label>
+                            <button @click="showDeptDropdown = !showDeptDropdown" class="w-full p-2.5 border rounded-lg bg-white text-left text-sm font-bold flex justify-between items-center">
+                                {{ selectedDepts.length > 0 ? selectedDepts.length + ' Selected' : 'Select All' }} <i class="fa-solid fa-chevron-down text-gray-400"></i>
                             </button>
-                            <div v-if="showDeptDropdown" class="dept-dropdown">
-                                <div class="dept-item font-bold border-b" @click="selectedDepts = []"><span class="w-4 h-4 border mr-2 flex items-center justify-center"><i v-if="selectedDepts.length===0" class="fa-solid fa-check text-xs"></i></span> All Staff</div>
-                                <div class="dept-item border-b text-purple-700" @click="toggleDept('Manager')"><span class="w-4 h-4 border mr-2 flex items-center justify-center"><i v-if="selectedDepts.includes('Manager')" class="fa-solid fa-check text-xs"></i></span> Managers</div>
-                                <div v-for="dept in uniqueDepts" :key="dept" class="dept-item" @click="toggleDept(dept)">
-                                    <span class="w-4 h-4 border mr-2 flex items-center justify-center"><i v-if="selectedDepts.includes(dept)" class="fa-solid fa-check text-xs"></i></span> {{ dept }}
+                            <div v-if="showDeptDropdown" class="dept-dropdown mt-1">
+                                <div class="dept-item font-bold border-b pb-2 mb-2" @click="selectedDepts = []"><span class="w-4 h-4 border rounded mr-2 flex items-center justify-center bg-gray-50"><i v-if="selectedDepts.length===0" class="fa-solid fa-check text-[10px] text-green-600"></i></span> All Staff</div>
+                                <div class="dept-item text-purple-700 font-bold mb-1" @click="toggleDept('Manager')"><span class="w-4 h-4 border rounded mr-2 flex items-center justify-center bg-purple-50"><i v-if="selectedDepts.includes('Manager')" class="fa-solid fa-check text-[10px] text-purple-600"></i></span> Managers</div>
+                                <div v-for="dept in uniqueDepts" :key="dept" class="dept-item text-gray-700" @click="toggleDept(dept)">
+                                    <span class="w-4 h-4 border rounded mr-2 flex items-center justify-center bg-gray-50"><i v-if="selectedDepts.includes(dept)" class="fa-solid fa-check text-[10px] text-blue-600"></i></span> {{ dept }}
                                 </div>
                             </div>
                         </div>
-                        <button @click="generateReportData" class="bg-green-700 text-white px-4 py-2 rounded">Load</button>
-                        <button @click="printReport" class="bg-slate-800 text-white px-4 py-2 rounded"><i class="fa-solid fa-print"></i> Print</button>
+                        
+                        <div class="w-full md:w-auto flex gap-2 mt-2 md:mt-0">
+                            <button @click="generateReportData" class="bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold shadow hover:bg-blue-800 transition flex-1 md:flex-none"><i class="fa-solid fa-magnifying-glass mr-2"></i> Load</button>
+                            <button @click="printReport" class="bg-slate-800 text-white px-6 py-2.5 rounded-lg font-bold shadow hover:bg-slate-900 transition flex-1 md:flex-none"><i class="fa-solid fa-print mr-2"></i> Print Report</button>
+                        </div>
                     </div>
                 </div>
-                <div class="bg-white rounded shadow overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-200 text-xs uppercase"><tr><th class="p-2 border">Name</th><th class="p-2 border">Total Baki</th><th class="p-2 border">Cut</th><th class="p-2 border">PF</th><th class="p-2 border bg-green-50">Net Pay</th></tr></thead>
-                        <tbody>
-                            <tr v-for="(row, idx) in reportData" :key="idx" class="hover:bg-gray-50 text-sm">
-                                <td class="p-2 border font-bold">{{ row.name }} <span class="text-xs text-gray-400">({{row.dept}})</span></td>
-                                <td class="p-2 border"><input type="number" v-model="row.totalBaki" class="w-full p-1 border rounded text-right text-red-600"></td>
-                                <td class="p-2 border"><input type="number" v-model="row.deduction" class="w-full p-1 border rounded text-right"></td>
-                                <td class="p-2 border"><input type="number" v-model="row.pf" class="w-full p-1 border rounded text-right"></td>
-                                <td class="p-2 border text-right font-bold text-green-700">{{ calculateNetSalary(row) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse whitespace-nowrap">
+                            <thead class="bg-gray-100 text-xs uppercase text-gray-600 tracking-wider">
+                                <tr>
+                                    <th class="p-3 border-b">Employee Name</th>
+                                    <th class="p-3 border-b text-center">Total Salary (₹)</th>
+                                    <th class="p-3 border-b bg-red-50 text-center">Advance/Cut (₹)</th>
+                                    <th class="p-3 border-b bg-orange-50 text-center">P.F. Cut (₹)</th>
+                                    <th class="p-3 border-b bg-green-100 text-green-900 text-right font-bold text-sm">Final Net Pay (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(row, idx) in reportData" :key="idx" class="hover:bg-blue-50 transition border-b last:border-0">
+                                    <td class="p-3 font-bold text-gray-800">{{ row.name }} <span class="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded ml-2 align-middle">{{row.dept}}</span></td>
+                                    <td class="p-3"><input type="number" v-model="row.totalBaki" class="w-24 p-1.5 border border-gray-300 rounded text-center font-bold text-blue-700 focus:ring-2 focus:ring-blue-200 outline-none bg-white mx-auto block"></td>
+                                    <td class="p-3 bg-red-50/30"><input type="number" v-model="row.deduction" class="w-24 p-1.5 border border-red-200 rounded text-center text-red-600 font-bold focus:ring-2 focus:ring-red-200 outline-none bg-white mx-auto block"></td>
+                                    <td class="p-3 bg-orange-50/30"><input type="number" v-model="row.pf" class="w-24 p-1.5 border border-orange-200 rounded text-center text-orange-600 font-bold focus:ring-2 focus:ring-orange-200 outline-none bg-white mx-auto block"></td>
+                                    <td class="p-3 text-right font-extrabold text-green-700 text-lg bg-green-50/30">{{ calculateNetSalary(row) }}</td>
+                                </tr>
+                                <tr v-if="reportData.length === 0">
+                                    <td colspan="5" class="p-8 text-center text-gray-400">No data loaded. Click 'Load' to generate report.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
         </main>
-    </div>
+    </template>
 
     <div class="print-only" :class="printModeClass">
+        
         <div v-if="printType === 'slips'" class="print-grid">
             <div v-for="(slip, index) in printQueue" :key="index" class="pavati-wrapper">
                 <div class="pavati">
-                    <h2 style="font-size:14px; font-weight:bold;">SANSKAR DIAMOND</h2>
-                    <div style="border-bottom:1px dashed #000; margin:2px 0;"></div>
-                    <div style="display:flex; justify-content:space-between;"><span>તારીખ:</span><span>{{ formatDate(slip.dateTo) }}</span></div>
-                    <div style="border-bottom:1px dashed #000; margin:2px 0;"></div>
-                    <div style="text-align:left;"><p><strong>નામ:</strong> {{ slip.empName }}</p><p><strong>ગામ:</strong> {{ slip.village }}</p><p><strong>વિભાગ:</strong> {{ slip.dept }}</p></div>
-                    <div style="border-bottom:1px dashed #000; margin:2px 0;"></div>
-                    <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>કામ</span><span>{{ slip.unit === 'Day' ? 'દિવસ' : 'હીરા' }}</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>{{ slip.workName }}</span><span>{{ slip.diamonds }}</span></div>
-                    <div style="border-bottom:1px dashed #000; margin:2px 0;"></div>
-                    <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:bold;"><span>કુલ:</span><span>₹ {{ slip.totalSalary }}</span></div>
+                    <h2 style="font-size:16px; font-weight:bold; letter-spacing: 1px;">SANSKAR DIAMOND</h2>
+                    <div style="border-bottom:1px dashed #000; margin:4px 0;"></div>
+                    
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                        <span style="font-weight:bold;">તારીખ:</span><span>{{ formatDate(slip.dateTo) }}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-weight:bold;">થી:</span><span>{{ formatDate(slip.dateFrom) }}</span>
+                    </div>
+                    <div style="border-bottom:1px dashed #000; margin:4px 0;"></div>
+                    
+                    <div style="text-align:left; line-height: 1.4;">
+                        <p><strong>નામ:</strong> {{ slip.empName }}</p>
+                        <p><strong>ગામ:</strong> {{ slip.village }}</p>
+                        <p><strong>વિભાગ:</strong> {{ slip.dept }}</p>
+                    </div>
+                    <div style="border-bottom:1px dashed #000; margin:4px 0;"></div>
+                    
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; background-color:#f8f8f8; padding:2px;">
+                        <span>કામની વિગત</span>
+                        <span>{{ slip.unit === 'Day' || slip.role === 'Manager' ? 'દિવસ (Days)' : 'હીરા (Hira)' }}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:2px 0;">
+                        <span>{{ slip.workName }} (@ ₹{{slip.rate}})</span>
+                        <span style="font-weight:bold;">{{ slip.diamonds }}</span>
+                    </div>
+                    <div style="border-bottom:1px dashed #000; margin:4px 0;"></div>
+                    
+                    <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:bold; padding:4px 0; background-color:#e2e8f0;">
+                        <span style="padding-left:4px;">કુલ પગાર:</span>
+                        <span style="padding-right:4px;">₹ {{ slip.totalSalary }}</span>
+                    </div>
+                    <div style="margin-top:15px; text-align:right; font-size:10px; font-style:italic;">સહી: _______________</div>
                 </div>
             </div>
         </div>
+
         <div v-if="printType === 'report'" class="print-mode-report">
-            <div style="text-align:center; margin-bottom:10px;"><h1 style="font-size:24px; font-weight:bold;">SANSKAR DIAMOND</h1><p>Salary Report</p></div>
+            <div style="text-align:center; margin-bottom:15px;">
+                <h1 style="font-size:28px; font-weight:bold; letter-spacing: 2px; border-bottom: 2px solid black; display:inline-block; padding-bottom:5px;">SANSKAR DIAMOND</h1>
+                <p style="font-size: 16px; font-weight: bold; margin-top:5px;">Staff Salary Report</p>
+                <p style="font-size: 12px; margin-top:2px;">Date: {{ formatDate(filterDateFrom) }} to {{ formatDate(filterDateTo) }}</p>
+            </div>
             <table>
-                <thead><tr><th>ક્રમ</th><th>નામ</th><th>ગામ</th><th>ટોટલ બાકી</th><th>બાકી બાદ</th><th>P.F.</th><th>ચૂકવવા પાત્ર પગાર</th><th>સહી</th></tr></thead>
+                <thead style="background-color: #f1f1f1;">
+                    <tr>
+                        <th style="width: 5%;">ક્રમ</th>
+                        <th style="width: 25%;">કર્મચારીનું નામ (Name)</th>
+                        <th style="width: 15%;">ગામ (Village)</th>
+                        <th style="width: 10%;">જમા પગાર (Salary)</th>
+                        <th style="width: 10%;">ઉપાડ/કપાત (Cut)</th>
+                        <th style="width: 10%;">P.F. (પી.એફ.)</th>
+                        <th style="width: 15%; background-color:#e0eedd;">ચોખ્ખો પગાર (Net Pay)</th>
+                        <th style="width: 10%;">સહી (Sign)</th>
+                    </tr>
+                </thead>
                 <tbody>
                     <tr v-for="(row, idx) in reportData" :key="idx">
-                        <td>{{ idx + 1 }}</td><td style="text-align:left; font-weight:bold;">{{ row.name }} <span style="font-size:10px">({{row.dept}})</span></td><td>{{ row.village }}</td><td>{{ row.totalBaki || 0 }}</td><td>{{ row.deduction || 0 }}</td><td>{{ row.pf || 0 }}</td><td style="font-weight:bold;">{{ calculateNetSalary(row) }}</td><td></td>
+                        <td>{{ idx + 1 }}</td>
+                        <td style="text-align:left; font-weight:bold; font-size:13px;">{{ row.name }} <span style="font-size:10px; color:#555; display:block; font-weight:normal;">{{row.dept}}</span></td>
+                        <td>{{ row.village }}</td>
+                        <td style="font-weight:bold;">₹ {{ row.totalBaki || 0 }}</td>
+                        <td style="color:#d32f2f;">₹ {{ row.deduction || 0 }}</td>
+                        <td style="color:#e65100;">₹ {{ row.pf || 0 }}</td>
+                        <td style="font-weight:bold; font-size:14px; background-color:#f1f8e9; border: 2px solid #33691e;">₹ {{ calculateNetSalary(row) }}</td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
+
 </div>
 
 <script>
     const { createApp } = Vue;
-    async function sha256(message) { const msgBuffer = new TextEncoder().encode(message); const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer); const hashArray = Array.from(new Uint8Array(hashBuffer)); return hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); }
+    
+    // Hash function for PIN
+    async function sha256(message) { 
+        const msgBuffer = new TextEncoder().encode(message); 
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer); 
+        const hashArray = Array.from(new Uint8Array(hashBuffer)); 
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); 
+    }
 
     createApp({
         data() {
             return {
                 isLoggedIn: false, loginPin: '', isMobileMenuOpen: false, currentView: 'dashboard', isLoading: false,
+                isSyncing: false, syncTimer: null, // AUTO-SAVE VARIABLES
                 employees: [], workTypes: [], workEntries: [], storedPinHash: null, 
                 newWorkType: { name: '', rate: '', unit: 'Diamond' }, newEmp: { name: '', village: '', dept: '' },
                 entry: { empIndex: '', workIndex: '', dateFrom: '', dateTo: '', diamonds: '', totalSalary: 0 },
@@ -320,6 +536,12 @@
                 printType: 'slips', printQueue: [], reportData: [],
                 githubToken: '', gistId: '', inputToken: '', inputGistId: ''
             }
+        },
+        watch: {
+            // DEEP WATCHERS FOR AUTO-SAVE
+            employees: { deep: true, handler() { this.saveData(); } },
+            workTypes: { deep: true, handler() { this.saveData(); } },
+            workEntries: { deep: true, handler() { this.saveData(); } }
         },
         computed: {
             totalPaidAmount() { return this.workEntries.filter(e => e.isPaid).reduce((acc, item) => acc + parseFloat(item.totalSalary || 0), 0).toFixed(2); },
@@ -344,6 +566,7 @@
             }
         },
         async mounted() {
+            // Cloud Login Check
             const urlParams = new URLSearchParams(window.location.search);
             const magicToken = urlParams.get('t'); const magicGist = urlParams.get('g');
             if(magicToken && magicGist) {
@@ -355,29 +578,48 @@
                 this.githubToken = localStorage.getItem('sanskar_gh_token') || ''; this.gistId = localStorage.getItem('sanskar_gist_id') || '';
             }
 
-            const today = new Date().toISOString().slice(0, 10); this.entry.dateFrom = today; this.entry.dateTo = today;
-            if(localStorage.getItem('sanskar_employees_v3')) this.employees = JSON.parse(localStorage.getItem('sanskar_employees_v3'));
-            if(localStorage.getItem('sanskar_workTypes_v3')) this.workTypes = JSON.parse(localStorage.getItem('sanskar_workTypes_v3'));
-            if(localStorage.getItem('sanskar_entries_v3')) this.workEntries = JSON.parse(localStorage.getItem('sanskar_entries_v3'));
-            const storedHash = localStorage.getItem('sanskar_pin_hash'); this.storedPinHash = storedHash ? storedHash : await sha256('1234');
+            // Defaults
+            const today = new Date().toISOString().slice(0, 10); 
+            this.entry.dateFrom = today; this.entry.dateTo = today;
+            
+            // Load LocalStorage WITHOUT triggering watchers to save immediately
+            const localEmps = localStorage.getItem('sanskar_employees_v3');
+            const localTypes = localStorage.getItem('sanskar_workTypes_v3');
+            const localEntries = localStorage.getItem('sanskar_entries_v3');
+            
+            if(localEmps) this.employees = JSON.parse(localEmps);
+            if(localTypes) this.workTypes = JSON.parse(localTypes);
+            if(localEntries) this.workEntries = JSON.parse(localEntries);
+            
+            // Password Hash Setup (Default 1234)
+            const storedHash = localStorage.getItem('sanskar_pin_hash'); 
+            this.storedPinHash = storedHash ? storedHash : await sha256('1234');
         },
         methods: {
             toggleMenu() { this.isMobileMenuOpen = !this.isMobileMenuOpen; },
             navigate(view) { this.currentView = view; this.isMobileMenuOpen = false; },
-            async login() { const h = await sha256(this.loginPin); if(h===this.storedPinHash){this.isLoggedIn=true;} },
-            logout() { this.isLoggedIn=false; this.loginPin=''; },
+            
+            async login() { const h = await sha256(this.loginPin); if(h===this.storedPinHash){this.isLoggedIn=true;} else { alert('Wrong PIN (try 1234)'); } },
+            logout() { this.isLoggedIn=false; this.loginPin=''; this.isMobileMenuOpen = false; },
+            
+            // --- UPDATED AUTO-SAVE LOGIC ---
             saveData() { 
                 localStorage.setItem('sanskar_employees_v3', JSON.stringify(this.employees)); 
                 localStorage.setItem('sanskar_entries_v3', JSON.stringify(this.workEntries)); 
                 localStorage.setItem('sanskar_workTypes_v3', JSON.stringify(this.workTypes)); 
-                if(this.githubToken && this.gistId) { this.syncToGithub(true); } 
+                
+                if(this.githubToken && this.gistId) { 
+                    this.isSyncing = true;
+                    if(this.syncTimer) clearTimeout(this.syncTimer);
+                    this.syncTimer = setTimeout(() => {
+                        this.syncToGithub(true); 
+                    }, 1500); // 1.5 seconds delay for Auto-Save
+                } 
             },
 
-            // --- CLEAR DATA LOGIC ---
             clearAllEntries() {
                 if(confirm("⚠️ ચેતવણી: શું તમારે બધી 'હિસાબ' (Work Entries) ડિલીટ કરવી છે? આ પ્રક્રિયા પાછી નહિ ફરે.")) {
                     this.workEntries = [];
-                    this.saveData();
                     alert("બધો હિસાબ સાફ થઈ ગયો છે!");
                 }
             },
@@ -389,7 +631,6 @@
                         this.workEntries = [];
                         this.employees = [];
                         this.workTypes = [];
-                        this.saveData();
                         alert("ફેક્ટરી રીસેટ સફળ! હવે તમે નવેસરથી શરૂ કરી શકો છો.");
                         location.reload();
                     }
@@ -399,21 +640,78 @@
             toggleDept(dept) { if(this.selectedDepts.includes(dept)) { this.selectedDepts = this.selectedDepts.filter(d => d !== dept); } else { this.selectedDepts.push(dept); } },
             generateMagicLink() { const url = window.location.href.split('?')[0]; const link = `${url}?t=${this.githubToken}&g=${this.gistId}`; navigator.clipboard.writeText(link).then(() => alert("Link Copied! Send to new mobile.")); },
             saveGithubSettings() { if(this.inputToken && this.inputGistId) { this.githubToken = this.inputToken; this.gistId = this.inputGistId; localStorage.setItem('sanskar_gh_token', this.inputToken); localStorage.setItem('sanskar_gist_id', this.inputGistId); alert("Saved!"); } },
-            async syncToGithub(silent = false) { if(!this.githubToken) return; this.isLoading = true; const data = { e: this.employees, w: this.workTypes, r: this.workEntries }; try { await fetch(`https://api.github.com/gists/${this.gistId}`, { method: 'PATCH', headers: { 'Authorization': `Bearer ${this.githubToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ files: { 'sanskar_db.json': { content: JSON.stringify(data) } } }) }); if(!silent) alert("Data Saved Online!"); } catch(e) { console.error(e); } this.isLoading = false; },
-            async syncFromGithub() { if(!this.githubToken) return; this.isLoading = true; try { const res = await fetch(`https://api.github.com/gists/${this.gistId}`, { headers: { 'Authorization': `Bearer ${this.githubToken}` } }); const gist = await res.json(); if(gist.files['sanskar_db.json']) { const data = JSON.parse(gist.files['sanskar_db.json'].content); this.employees = data.e || []; this.workTypes = data.w || []; this.workEntries = data.r || []; this.saveData(); } } catch(e) { console.error(e); } this.isLoading = false; },
-            togglePaid(rec) { rec.isPaid = !rec.isPaid; this.saveData(); },
-            bulkMarkAsPaid() { if(this.filteredEntries.length === 0) return alert("No entries"); if(confirm("Mark visible as PAID?")) { this.filteredEntries.forEach(rec => rec.isPaid = true); this.saveData(); } },
-            addWorkType() { if(this.newWorkType.name) { this.workTypes.push({...this.newWorkType}); this.saveData(); } },
-            deleteWorkType(i) { this.workTypes.splice(i,1); this.saveData(); },
+            
+            async syncToGithub(silent = false) { 
+                if(!this.githubToken) return; 
+                this.isSyncing = true; 
+                const data = { e: this.employees, w: this.workTypes, r: this.workEntries }; 
+                try { 
+                    await fetch(`https://api.github.com/gists/${this.gistId}`, { 
+                        method: 'PATCH', 
+                        headers: { 'Authorization': `Bearer ${this.githubToken}`, 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ files: { 'sanskar_db.json': { content: JSON.stringify(data) } } }) 
+                    }); 
+                    if(!silent) alert("Data Saved Online!"); 
+                } catch(e) { 
+                    console.error(e); 
+                } 
+                this.isSyncing = false; 
+            },
+            
+            async syncFromGithub() { if(!this.githubToken) return; this.isLoading = true; try { const res = await fetch(`https://api.github.com/gists/${this.gistId}`, { headers: { 'Authorization': `Bearer ${this.githubToken}` } }); const gist = await res.json(); if(gist.files['sanskar_db.json']) { const data = JSON.parse(gist.files['sanskar_db.json'].content); this.employees = data.e || []; this.workTypes = data.w || []; this.workEntries = data.r || []; } } catch(e) { console.error(e); } this.isLoading = false; },
+            
+            togglePaid(rec) { rec.isPaid = !rec.isPaid; },
+            bulkMarkAsPaid() { if(this.filteredEntries.length === 0) return alert("No entries"); if(confirm("Mark visible as PAID?")) { this.filteredEntries.forEach(rec => rec.isPaid = true); } },
+            
+            addWorkType() { if(this.newWorkType.name) { this.workTypes.push({...this.newWorkType}); this.newWorkType={name:'',rate:'',unit:'Diamond'}; } },
+            deleteWorkType(i) { this.workTypes.splice(i,1); },
+            
             getSelectedWorkUnit() { if(this.entry.workIndex === '') return 'Diamond'; return this.workTypes[this.entry.workIndex].unit || 'Diamond'; },
             calculateTotal() { if(this.entry.workIndex!=='' && this.entry.diamonds) { this.entry.totalSalary = (this.entry.diamonds * this.workTypes[this.entry.workIndex].rate).toFixed(2); } },
-            addEmployee() { if(this.newEmp.name) { this.employees.push({...this.newEmp}); this.newEmp={name:'',village:'',dept:''}; this.saveData(); alert("Saved"); } },
-            deleteEmployee(i) { this.employees.splice(i,1); this.saveData(); },
-            saveEntry() { if(this.entry.empIndex==='') return alert("Select Person"); const emp = this.employees[this.entry.empIndex]; const work = this.workTypes[this.entry.workIndex]; const rec = { empName: emp.name, village: emp.village, dept: emp.dept, workName: work.name, rate: work.rate, unit: work.unit, dateFrom: this.entry.dateFrom, dateTo: this.entry.dateTo, diamonds: this.entry.diamonds, totalSalary: this.entry.totalSalary, timestamp: new Date().getTime(), isPaid: false }; this.workEntries.unshift(rec); this.saveData(); if(confirm("Saved! Print?")) { this.printType='slips'; this.printQueue=[rec]; setTimeout(()=>window.print(), 200); } this.entry.diamonds=''; this.entry.totalSalary=0; },
-            deleteEntry(i) { if(confirm("Delete?")) { this.workEntries.splice(i,1); this.saveData(); } },
-            navClass(view) { return this.currentView === view ? 'w-full text-left p-3 rounded bg-blue-700 text-white font-bold' : 'w-full text-left p-3 rounded hover:bg-slate-800 text-gray-300'; },
-            formatDate(d) { const date = new Date(d); return `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}`; },
-            bulkPrintSlips() { if(this.filteredEntries.length === 0) return alert("No entries"); this.printType = 'slips'; this.printQueue = this.filteredEntries; setTimeout(() => window.print(), 500); },
+            
+            addEmployee() { if(this.newEmp.name) { this.employees.push({...this.newEmp}); this.newEmp={name:'',village:'',dept:''}; alert("Saved"); } },
+            deleteEmployee(i) { this.employees.splice(i,1); },
+            
+            saveEntry() { 
+                if(this.entry.empIndex==='') return alert("Select Person"); 
+                const emp = this.employees[this.entry.empIndex]; 
+                const work = this.workTypes[this.entry.workIndex]; 
+                const rec = { 
+                    empName: emp.name, 
+                    village: emp.village, 
+                    dept: emp.dept, 
+                    role: emp.type === 'fixed' ? 'Manager' : 'Worker',
+                    workName: work.name, 
+                    rate: work.rate, 
+                    unit: work.unit, 
+                    dateFrom: this.entry.dateFrom, 
+                    dateTo: this.entry.dateTo, 
+                    diamonds: this.entry.diamonds, 
+                    totalSalary: this.entry.totalSalary, 
+                    timestamp: new Date().getTime(), 
+                    isPaid: false 
+                }; 
+                this.workEntries.unshift(rec); 
+                if(confirm("Saved! Print Pavti now?")) { 
+                    this.printType='slips'; 
+                    this.printQueue=[rec]; 
+                    setTimeout(()=>window.print(), 200); 
+                } 
+                this.entry.diamonds=''; 
+                this.entry.totalSalary=0; 
+            },
+            deleteEntry(i) { if(confirm("Delete?")) { this.workEntries.splice(i,1); } },
+            
+            navClass(view) { return this.currentView === view ? 'w-full text-left p-3 rounded bg-blue-700 text-white font-bold transition flex items-center shadow-md' : 'w-full text-left p-3 rounded hover:bg-slate-800 text-gray-300 transition flex items-center'; },
+            formatDate(d) { if(!d)return''; const date = new Date(d); return `${date.getDate().toString().padStart(2,'0')}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getFullYear()}`; },
+            
+            bulkPrintSlips() { 
+                if(this.filteredEntries.length === 0) return alert("No entries"); 
+                this.printType = 'slips'; 
+                this.printQueue = this.filteredEntries; 
+                setTimeout(() => window.print(), 500); 
+            },
+            
             generateReportData() {
                 const start = new Date(this.filterDateFrom).setHours(0,0,0,0); const end = new Date(this.filterDateTo).setHours(23,59,59,999);
                 const entries = this.workEntries.filter(rec => {
@@ -430,10 +728,17 @@
                 });
                 if(entries.length === 0) return alert("No data found");
                 const summary = {}; 
-                entries.forEach(rec => { if(!summary[rec.empName + rec.dept]) { summary[rec.empName + rec.dept] = { name: rec.empName, village: rec.village, dept: rec.dept, workSalary: 0, totalBaki: 0, deduction: 0, pf: 0 }; } summary[rec.empName + rec.dept].workSalary += parseFloat(rec.totalSalary); });
+                entries.forEach(rec => { 
+                    const key = rec.empName + rec.dept;
+                    if(!summary[key]) { 
+                        summary[key] = { name: rec.empName, village: rec.village, dept: rec.dept, workSalary: 0, totalBaki: 0, deduction: 0, pf: 0 }; 
+                    } 
+                    summary[key].workSalary += parseFloat(rec.totalSalary); 
+                    summary[key].totalBaki = summary[key].workSalary;
+                });
                 this.reportData = Object.values(summary);
             },
-            calculateNetSalary(row) { return (parseFloat(row.workSalary) - parseFloat(row.deduction || 0) - parseFloat(row.pf || 0)).toFixed(0); },
+            calculateNetSalary(row) { return (parseFloat(row.totalBaki || row.workSalary) - parseFloat(row.deduction || 0) - parseFloat(row.pf || 0)).toFixed(0); },
             printReport() { if(this.reportData.length === 0) return alert("Load data first"); this.printType = 'report'; setTimeout(() => window.print(), 500); }
         }
     }).mount('#app');
